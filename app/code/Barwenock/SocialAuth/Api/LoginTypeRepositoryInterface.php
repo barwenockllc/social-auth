@@ -13,6 +13,12 @@ interface LoginTypeRepositoryInterface
     public function getById($id);
 
     /**
+     * @param $customerId
+     * @return \Barwenock\SocialAuth\Model\LoginType
+     */
+    public function getByCustomerId($customerId);
+
+    /**
      * Save
      *
      * @param \Barwenock\SocialAuth\Model\LoginType $subject
@@ -23,8 +29,8 @@ interface LoginTypeRepositoryInterface
     /**
      * Get list
      *
-     * @param Magento\Framework\Api\SearchCriteriaInterface $creteria
-     * @return Magento\Framework\Api\SearchResults
+     * @param \Magento\Framework\Api\SearchCriteriaInterface $creteria
+     * @return \Magento\Framework\Api\SearchResults
      */
     public function getList(\Magento\Framework\Api\SearchCriteriaInterface $creteria);
 

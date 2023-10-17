@@ -60,12 +60,8 @@ class FacebookCustomerRepository implements \Barwenock\SocialAuth\Api\FacebookCu
     public function getByCustomerId($customerId)
     {
         $facebookCustomer = $this->facebookCustomerFactory->create();
-        $this->facebookCustomerResource->load($facebookCustomer, $customerId, 'customer_id');
-        if (!$facebookCustomer->getEntityId()) {
-            throw new \Magento\Framework\Exception\NoSuchEntityException(
-                __('Requested facebook customer doesn\'t exist')
-            );
-        }
+        $this->facebookCustomerResource->load($facebookCustomer, 1, 'customer_id');
+
         return $facebookCustomer;
     }
     /**

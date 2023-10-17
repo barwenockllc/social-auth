@@ -39,8 +39,8 @@ interface FacebookCustomerRepositoryInterface
     /**
      * Get list
      *
-     * @param Magento\Framework\Api\SearchCriteriaInterface $creteria
-     * @return Magento\Framework\Api\SearchResults
+     * @param \Magento\Framework\Api\SearchCriteriaInterface $creteria
+     * @return \Magento\Framework\Api\SearchResults
      */
     public function getList(\Magento\Framework\Api\SearchCriteriaInterface $creteria);
 

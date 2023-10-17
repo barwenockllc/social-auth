@@ -25,7 +25,7 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
     protected $searchResultsFactory;
 
     /**
-     * @var \Barwenock\SocialAuth\Model\LoginType
+     * @var \Barwenock\SocialAuth\Model\LoginTypeFactory
      */
     protected $loginTypeFactory;
 
@@ -34,14 +34,14 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
      * @param \Barwenock\SocialAuth\Model\ResourceModel\LoginType $loginTypeResource
      * @param \Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface $collectionProcessor
      * @param \Magento\Framework\Api\SearchResultsFactory $searchResultsFactory
-     * @param \Barwenock\SocialAuth\Model\LoginType $loginTypeFactory
+     * @param \Barwenock\SocialAuth\Model\LoginTypeFactory $loginTypeFactory
      */
     public function __construct(
         \Barwenock\SocialAuth\Model\ResourceModel\LoginType\CollectionFactory $collectionFactory,
         \Barwenock\SocialAuth\Model\ResourceModel\LoginType $loginTypeResource,
         \Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface $collectionProcessor,
         \Magento\Framework\Api\SearchResultsFactory $searchResultsFactory,
-        \Barwenock\SocialAuth\Model\LoginType $loginTypeFactory
+        \Barwenock\SocialAuth\Model\LoginTypeFactory $loginTypeFactory
     ) {
         $this->collectionFactory = $collectionFactory;
         $this->loginTypeResource = $loginTypeResource;
@@ -66,6 +66,14 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
                 __('Requested login type doesn\'t exist')
             );
         }
+        return $loginType;
+    }
+
+    public function getByCustomerId($customerId)
+    {
+        $loginType = $this->loginTypeFactory->create();
+        $this->loginTypeResource->load($loginType, $customerId, 'customer_id');
+
         return $loginType;
     }
 

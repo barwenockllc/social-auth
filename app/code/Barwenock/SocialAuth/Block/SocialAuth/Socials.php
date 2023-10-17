@@ -13,14 +13,14 @@ class Socials extends \Magento\Framework\View\Element\Template
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
         \Magento\Customer\Model\Session $customerSession,
         \Barwenock\SocialAuth\Api\FacebookCustomerRepositoryInterface $facebookCustomerRepository,
-        \Magento\Framework\Locale\Resolver $resolver,
+        \Magento\Framework\Locale\Resolver $localeResolver,
         \Magento\Framework\Serialize\Serializer\Json $serializer,
         array $data = []
     ) {
         $this->configHelper = $configHelper;
         $this->customerSession = $customerSession;
         $this->facebookCustomerRepository = $facebookCustomerRepository;
-        $this->resolver = $resolver;
+        $this->localeResolver = $localeResolver;
         $this->serializer = $serializer;
         parent::__construct($context, $data);
     }
@@ -84,7 +84,7 @@ class Socials extends \Magento\Framework\View\Element\Template
         $userId = 0;
         $customerId = $this->customerSession->getCustomerId();
 
-        $collection = $this->facebookCustomerRepository->getById($customerId);
+        $collection = $this->facebookCustomerRepository->getByCustomerId($customerId);
         foreach ($collection as $data) {
             if ($data['facebook_id']) {
                 $userId = $data['facebook_id'];
@@ -95,7 +95,7 @@ class Socials extends \Magento\Framework\View\Element\Template
 
     public function getLocaleCode()
     {
-        return $this->resolver->getLocale();
+        return $this->localeResolver->getLocale();
     }
 
     public function getRequestUrl($url, $param)
@@ -103,8 +103,30 @@ class Socials extends \Magento\Framework\View\Element\Template
         return $this->_storeManager->getStore()->getUrl($url, $param);
     }
 
-    public function jsonEncode($data)
+    public function getPopupData()
     {
+        $popupData = [
+            "width"=>'700',
+            "height" => '300',
+            "twitterUrl" => $this->getRequestUrl('socialsignup/twitter/request', ['mainw_protocol'=>'http']),
+            "linkedinUrl" => $this->getRequestUrl('socialsignup/linkedin/request', ['mainw_protocol'=>'http']),
+            "googleUrl" => $this->getRequestUrl('socialsignup/google/request', ['mainw_protocol'=>'http']),
+            "instagramUrl" => $this->getRequestUrl('socialsignup/instagram/request', ['mainw_protocol'=>'http'])
+        ];
+
+        return $this->serializer->serialize($popupData);
+    }
+
+    public function getFacebookBlockData()
+    {
+        $data = [
+            "fbAppId" => $this->configHelper->getFacebookAppId(),
+            "uId" => $this->getFacebookUserId(),
+            "customerSession" => $this->ifCustomerLogin(),
+            "localeCode" => $this->getLocaleCode(),
+            "fbLoginUrl" => $this->getUrl('socialsignup/facebook/login')
+        ];
+
         return $this->serializer->serialize($data);
     }
 }
