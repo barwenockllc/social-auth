@@ -1,0 +1,88 @@
+<?php
+/**
+ * @var $block \Barwenock\SocialAuth\Block\SocialAuth\Socials
+ * @var $escaper \Magento\Framework\Escaper
+ */
+?>
+<?php if ($block->displaySocialsOn()) : ?>
+<div class="socialauth_container">
+    <?php if ($block->isAnySocialEnabled()) : ?>
+        <div class="socialauth_title">
+            <h3>
+                <?= $escaper->escapeHtml(__("Login With Social Media")) ?>
+            </h3>
+        </div>
+    <?php endif; ?>
+
+    <?php if (!$block->ifCustomerLogin()) : ?>
+        <?php if ($block->configHelper->getFacebookStatus() == 1) : ?>
+            <div  id="facebook_login" class="socialauth_buttons">
+                <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('facebook'))?>"
+                     alt="<?= $escaper->escapeHtml(__('Facebook'))?>"
+                     title="<?= $escaper->escapeHtml(__('Connect with Facebook'))?>"/>
+            </div>
+        <?php endif ?>
+
+        <?php if ($block->configHelper->getTwitterStatus() == 1) : ?>
+            <div  id="twitter_login" class="socialauth_buttons">
+                <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('twitter'))?>"
+                     alt="<?= $escaper->escapeHtml(__('Twitter'))?>"
+                     title="<?= $escaper->escapeHtml(__('Connect with Twitter'))?>" />
+            </div>
+        <?php endif; ?>
+
+        <?php if ($block->configHelper->getGoogleStatus() == 1) : ?>
+            <div id="google_login" class="socialauth_buttons">
+                <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('google'))?>"
+                     alt="<?= $escaper->escapeHtml(__('Google')) ?>"
+                     title="<?= $escaper->escapeHtml(__('Connect with Google')) ?>">
+            </div>
+        <?php endif; ?>
+
+        <?php if ($block->configHelper->getLinkedinStatus() == 1) : ?>
+            <div  id="linkedin_login" class="socialauth_buttons">
+                <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('linkedin'))?>"
+                     alt="<?= $escaper->escapeHtml(__('LinkedIn'))?>"
+                     title="<?= $escaper->escapeHtml(__('Connect with LinkedIn'))?>" />
+            </div>
+        <?php endif; ?>
+
+        <?php if ($block->configHelper->getInstagramStatus() == 1) : ?>
+            <div  id="instagram_login" class="socialauth_buttons">
+                <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('instagram'))?>"
+                     alt="<?= $escaper->escapeHtml(__('Instagram'))?>"
+                     title="<?= $escaper->escapeHtml(__('Connect with Instagram'))?>" />
+            </div>
+        <?php endif; ?>
+    <?php endif ?>
+</div>
+<?php endif; ?>
+
+<?php
+$data = [
+    "fbAppId" => $block->configHelper->getFacebookAppId(),
+    "uId" => $block->getFacebookUserId(),
+    "customerSession" => $block->ifCustomerLogin(),
+    "localeCode" => $block->getLocaleCode(),
+    "fbLoginUrl" => $block->getUrl('socialsignup/facebook/login')
+];
+$popupData = [
+    "width"=>'700',
+    "height" => '300',
+    "twitterUrl" => $block->getRequestUrl('socialsignup/twitter/request', ['mainw_protocol'=>'http']),
+    "linkedinUrl" => $block->getRequestUrl('socialsignup/linkedin/request', ['mainw_protocol'=>'http']),
+    "googleUrl" => $block->getRequestUrl('socialsignup/google/request', ['mainw_protocol'=>'http']),
+    "instagramUrl" => $block->getRequestUrl('socialsignup/instagram/request', ['mainw_protocol'=>'http'])
+];
+$serializedData = $block->jsonEncode($data);
+$serializedPopupData = $block->jsonEncode($popupData);
+?>
+
+<script type="text/x-magento-init">
+    {
+        "*":{
+            "fbBlockPlugin":<?= /* @noEscape */ $serializedData; ?>,
+            "popupPlugin":<?= /* @noEscape */ $serializedPopupData; ?>
+    }
+}
+</script>

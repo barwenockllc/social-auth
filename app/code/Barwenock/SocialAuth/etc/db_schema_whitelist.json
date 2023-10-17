@@ -1,0 +1,12 @@
+{
+    "socialauth_facebook_customer": {
+        "column": {
+            "entity_id": true,
+            "customer_id": true,
+            "facebook_id": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    }
+}

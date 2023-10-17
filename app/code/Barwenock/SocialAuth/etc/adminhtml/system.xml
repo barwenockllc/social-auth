@@ -1,0 +1,281 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="barwenock" translate="label" sortOrder="100">
+            <label>Barwenock</label>
+        </tab>
+        <section id="socialauth" translate="label" type="text" sortOrder="10"
+                 showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Social Authorization</label>
+            <tab>barwenock</tab>
+            <resource>Barwenock_SocialAuth::config_socialauth</resource>
+            <group id="socialauth" translate="label" type="text" sortOrder="10"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Module Social Authorization Configuration</label>
+                <field id="status" translate="label" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Module Status</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="display_on" translate="label comment" type="multiselect" sortOrder="50"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Setup Social Login Display</label>
+                    <source_model>Barwenock\SocialAuth\Model\Config\Source\Display</source_model>
+                </field>
+                <field id="product_share" translate="label" type="select" sortOrder="60"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Social Share on Product Page</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="subscription" translate="label comment" type="select" sortOrder="80"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Subscribe Customer To Email Newsletter</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>
+                        Automatically subscribe customers to the newsletter during the registration process
+                    </comment>
+                </field>
+                <field id="login_redirect" translate="label comment" type="select" sortOrder="100"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Successful Login Page</label>
+                    <source_model>Barwenock\SocialAuth\Model\Config\Source\Redirect</source_model>
+                    <comment>After each successful login, the user will be directed to this page.</comment>
+                </field>
+                <field id="login_redirect_url" translate="label comment" type="text" sortOrder="110"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>URL for Successful Login Page</label>
+                    <comment>
+                        Please provide the complete URL, including the domain name, to which you wish to redirect.
+                    </comment>
+                    <depends>
+                        <field id="login_redirect">__custom__</field>
+                    </depends>
+                </field>
+                <field id="register_redirect" translate="label comment" type="select" sortOrder="120"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Registration Success Page</label>
+                    <source_model>Barwenock\SocialAuth\Model\Config\Source\Redirect</source_model>
+                    <comment>User will be redirected to this page after successful registration</comment>
+                </field>
+                <field id="register_redirect_url" translate="label comment" type="text" sortOrder="130"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Registration Custom Success Page URL</label>
+                    <comment>
+                        Please enter the full URL of the page, including the domain name,
+                        to which you will be redirecting.
+                    </comment>
+                    <depends>
+                        <field id="register_redirect">__custom__</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="facebook_config" translate="label" type="text" sortOrder="20"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Facebook Configuration</label>
+                <field id="status" translate="label" type="select" sortOrder="1"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Status</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="application_id" translate="label comment" sortOrder="2" type="obscure"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Application ID</label>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="application_secret" translate="label comment" sortOrder="3" type="obscure"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Application Secret</label>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="icon_login" translate="label" type="image" sortOrder="4"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Button for Login</label>
+                    <comment>
+                        Accepted image formats: JPG, JPEG, GIF, and PNG.
+                        We recommend an image size of 40x40 pixels with a square aspect ratio.
+                    </comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                    <base_url type="media" scope_info="1">socialauth/fb</base_url>
+                    <upload_dir config="system/filesystem/media" scope_info="1">socialauth/facebook</upload_dir>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="twitter_config" translate="label" type="text" sortOrder="40"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Twitter Configuration</label>
+                <field id="status" translate="label" type="select" sortOrder="1"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Status</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="consumer_key" translate="label comment" sortOrder="2" type="obscure"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Consumer API key</label>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="consumer_secret_key" translate="label comment" sortOrder="3" type="obscure"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Consumer API secret key</label>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="icon_login" translate="label" type="image" sortOrder="4"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Button for Login</label>
+                    <comment>
+                        Accepted image formats: JPG, JPEG, GIF, and PNG.
+                        We recommend an image size of 40x40 pixels with a square aspect ratio.
+                    </comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                    <base_url type="media" scope_info="1">socialauth/twitter</base_url>
+                    <upload_dir config="system/filesystem/media" scope_info="1">socialauth/twitter</upload_dir>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="google_config" translate="label" type="text"
+                   sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Google Configuration</label>
+                <field id="status" translate="label" type="select"
+                       sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Status</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="client_id" translate="label comment" sortOrder="2" type="obscure"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>OAuth Client ID</label>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="client_secret" translate="label comment" sortOrder="3" type="obscure"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>OAuth Client Secret</label>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="icon_login" translate="label" type="image" sortOrder="4"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Button for Login</label>
+                    <comment>
+                        Accepted image formats: JPG, JPEG, GIF, and PNG.
+                        We recommend an image size of 40x40 pixels with a square aspect ratio.
+                    </comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                    <base_url type="media" scope_info="1">socialauth/google</base_url>
+                    <upload_dir config="system/filesystem/media" scope_info="1">socialauth/google</upload_dir>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="linkedin_config" translate="label" type="text" sortOrder="60"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>LinkedIn Configuration</label>
+                <field id="status" translate="label" type="select" sortOrder="1"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Status</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="client_id" translate="label comment" sortOrder="2" type="obscure"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Client ID</label>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="client_secret" translate="label comment" sortOrder="3" type="obscure"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Client Secret</label>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="icon_login" translate="label" type="image" sortOrder="4"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Button for Login</label>
+                    <comment>
+                        Accepted image formats: JPG, JPEG, GIF, and PNG.
+                        We recommend an image size of 40x40 pixels with a square aspect ratio.
+                    </comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                    <base_url type="media" scope_info="1">socialauth/linkedin</base_url>
+                    <upload_dir config="system/filesystem/media" scope_info="1">socialauth/linkedin</upload_dir>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="instagram_config" translate="label" type="text" sortOrder="70"
+                   showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Instagram Configuration</label>
+                <field id="status" translate="label" type="select" sortOrder="1"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Status</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="client_id" translate="label comment" sortOrder="2" type="obscure"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Client ID</label>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="client_secret" translate="label comment" sortOrder="3" type="obscure"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Client Secret</label>
+                    <validate>required-entry</validate>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="icon_login" translate="label" type="image" sortOrder="4"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Button for Login</label>
+                    <comment>
+                        Accepted image formats: JPG, JPEG, GIF, and PNG.
+                        We recommend an image size of 40x40 pixels with a square aspect ratio.
+                    </comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
+                    <base_url type="media" scope_info="1">socialauth/instagram</base_url>
+                    <upload_dir config="system/filesystem/media" scope_info="1">socialauth/instagram</upload_dir>
+                    <depends>
+                        <field id="status">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
