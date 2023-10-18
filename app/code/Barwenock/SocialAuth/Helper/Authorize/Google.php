@@ -2,12 +2,6 @@
 
 namespace Barwenock\SocialAuth\Helper\Authorize;
 
-use Magento\Customer\Api\CustomerRepositoryInterface;
-use Magento\Customer\Model\Customer;
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\Helper\Context;
-use Magento\Store\Model\StoreManagerInterface;
-
 class Google extends \Magento\Framework\App\Helper\AbstractHelper
 {
     /**
@@ -16,17 +10,32 @@ class Google extends \Magento\Framework\App\Helper\AbstractHelper
     protected $customerSession;
 
     /**
-     * @var \Magento\Store\Model\StoreManager
+     * @var \Magento\Customer\Model\Customer
      */
-    protected $_storeManager;
+    protected $customerModel;
 
     /**
-     * @param Context $context
+     * @var \Magento\Store\Model\StoreManager
+     */
+    protected $storeManager;
+
+    /**
+     * @var \Magento\Framework\Api\SearchCriteriaBuilder
+     */
+    protected $searchCriteriaBuilder;
+
+    /**
+     * @var \Magento\Customer\Api\CustomerRepositoryInterface
+     */
+    protected $customerRepository;
+
+    /**
+     * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Customer\Model\Session $customerSession
-     * @param StoreManagerInterface $storeManager
-     * @param Customer $customerModel
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param CustomerRepositoryInterface $customerRepository
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Customer\Model\Customer $customerModel
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -37,8 +46,8 @@ class Google extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
     ) {
         $this->customerSession = $customerSession;
-        $this->_customerModel = $customerModel;
-        $this->_storeManager = $storeManager;
+        $this->customerModel = $customerModel;
+        $this->storeManager = $storeManager;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->customerRepository = $customerRepository;
         parent::__construct($context);
@@ -57,7 +66,7 @@ class Google extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $customers = $customerData->getItems();
         foreach ($customers as $customer) {
-            $customerModel = $this->_customerModel->load($customer->getId());
+            $customerModel = $this->customerModel->load($customer->getId());
             $customerModel
                 ->setData('socialauth_google_id', $googleId)
                 ->setData('socialauth_google_token', $token)
@@ -93,10 +102,10 @@ class Google extends \Magento\Framework\App\Helper\AbstractHelper
     public function getCustomersByGoogleId($googleId)
     {
         $this->searchCriteriaBuilder->addFilter('socialauth_google_id', $googleId);
-        if ($this->_customerModel->getSharingConfig()->isWebsiteScope()) {
+        if ($this->customerModel->getSharingConfig()->isWebsiteScope()) {
             $this->searchCriteriaBuilder->addFilter(
                 'website_id',
-                $this->_storeManager->getStore()->getWebsiteId()
+                $this->storeManager->getStore()->getWebsiteId()
             );
         }
 
@@ -120,10 +129,10 @@ class Google extends \Magento\Framework\App\Helper\AbstractHelper
     public function getCustomersByEmail($email)
     {
         $this->searchCriteriaBuilder->addFilter('email', $email);
-        if ($this->_customerModel->getSharingConfig()->isWebsiteScope()) {
+        if ($this->customerModel->getSharingConfig()->isWebsiteScope()) {
             $this->searchCriteriaBuilder->addFilter(
                 'website_id',
-                $this->_storeManager->getStore()->getWebsiteId()
+                $this->storeManager->getStore()->getWebsiteId()
             );
         }
         if ($this->customerSession->isLoggedIn()) {
