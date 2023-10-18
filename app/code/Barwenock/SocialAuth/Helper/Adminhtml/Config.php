@@ -71,4 +71,20 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         ));
     }
+
+    public function getGoogleClientId()
+    {
+        return $this->encryptor->decrypt($this->scopeConfig->getValue(
+            'socialauth/google_config/client_id',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+    }
+
+    public function getGoogleSecret()
+    {
+        return $this->encryptor->decrypt($this->scopeConfig->getValue(
+            'socialauth/google_config/client_secret',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+    }
 }
