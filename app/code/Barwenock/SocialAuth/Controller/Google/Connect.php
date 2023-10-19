@@ -11,11 +11,9 @@ use Magento\Framework\Url;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute;
 use Webkul\SocialSignup\Helper\Data;
 
-/**
- * Connect class of google
- */
 class Connect implements \Magento\Framework\App\ActionInterface
 {
+    protected const CONNECT_TYPE = 'Google';
     /**
      * @var isRegistor
      */
@@ -88,7 +86,8 @@ class Connect implements \Magento\Framework\App\ActionInterface
         \Barwenock\SocialAuth\Helper\CacheManagement $cacheManagement,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\UrlInterface $url,
-        \Barwenock\SocialAuth\Model\Customer\Create $socialAuthCustomer
+        \Barwenock\SocialAuth\Model\Customer\Create $socialAuthCustomer,
+        \Magento\Framework\App\Response\Http $redirect
     ) {
         $this->isRegistor = true;
         $this->helper = $helper;
@@ -107,6 +106,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
         $this->requset = $request;
         $this->url = $url;
         $this->socialAuthCustomer = $socialAuthCustomer;
+        $this->redirect = $redirect;
     }
 
     public function execute()
@@ -139,7 +139,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
                 ->setPath($redirectUrl);
         }
 
-        $this->helper->redirect404($this);
+        return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
     }
 
     /**
@@ -147,7 +147,6 @@ class Connect implements \Magento\Framework\App\ActionInterface
      */
     protected function googleConnect()
     {
-        $isCheckoutPageReq = 0;
         $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
         $errorCode = $this->requset->getParam('error');
         $code = $this->requset->getParam('code');
@@ -252,7 +251,8 @@ class Connect implements \Magento\Framework\App\ActionInterface
                         $userInfo->given_name,
                         $userInfo->family_name,
                         $userInfo->id,
-                        $token
+                        $token,
+                        self::CONNECT_TYPE
                     );
                 }
             }

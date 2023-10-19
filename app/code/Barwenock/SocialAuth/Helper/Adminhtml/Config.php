@@ -87,4 +87,28 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         ));
     }
+
+    public function getSubscriptionStatus()
+    {
+        return $this->scopeConfig->getValue(
+            'socialauth/socialauth/subscription',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    public function getLinkedinClientId()
+    {
+        return $this->encryptor->decrypt($this->scopeConfig->getValue(
+            'socialauth/linkedin_config/client_id',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+    }
+
+    public function getLinkedinSecret()
+    {
+        return $this->encryptor->decrypt($this->scopeConfig->getValue(
+            'socialauth/linkedin_config/client_secret',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+    }
 }

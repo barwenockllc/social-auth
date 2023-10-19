@@ -53,9 +53,9 @@ class GoogleClient
     protected $url;
 
     /**
-     * @var \Magento\Framework\App\Action\Context
+     * @var \Magento\Framework\App\RequestInterface
      */
-    protected $contextController;
+    protected $request;
 
     /**
      * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
@@ -70,7 +70,7 @@ class GoogleClient
     /**
      * @param \Magento\Store\Model\Store $store
      * @param \Magento\Framework\HTTP\Client\Curl $curl
-     * @param \Magento\Framework\App\Action\Context $contextController
+     * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\Url $url
      * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
      * @param \Magento\Framework\Serialize\Serializer\Json $jsonSerializer
@@ -78,14 +78,14 @@ class GoogleClient
     public function __construct(
         \Magento\Store\Model\Store $store,
         \Magento\Framework\HTTP\Client\Curl $curl,
-        \Magento\Framework\App\Action\Context $contextController,
+        \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\Url $url,
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
         \Magento\Framework\Serialize\Serializer\Json $jsonSerializer
     ) {
         $this->store = $store;
         $this->curl = $curl;
-        $this->contextController = $contextController;
+        $this->request = $request;
         $this->url = $url;
         $this->configHelper = $configHelper;
         $this->jsonSerializer = $jsonSerializer;
@@ -146,23 +146,11 @@ class GoogleClient
      */
     public function api($endpoint, $method = 'GET', $params = [])
     {
-        $this->ensureAccessToken();
-
         $url = self::OAUTH2_SERVICE_URI . $endpoint;
         $method = strtoupper($method);
 
-        $params['access_token'] = $this->token->access_token;
+        $params['access_token'] = $this->getAccessToken();
         return $this->httpRequest($url, $method, $params);
-    }
-
-    /**
-     * Ensure a valid access token (fetch or refresh if needed)
-     */
-    protected function ensureAccessToken()
-    {
-        if (empty($this->token) || $this->isAccessTokenExpired()) {
-            $this->fetchOrRefreshAccessToken();
-        }
     }
 
     /**
@@ -171,9 +159,9 @@ class GoogleClient
      */
     protected function fetchOrRefreshAccessToken()
     {
-        if (empty($this->token) || $this->isAccessTokenExpired()) {
+        if (empty($this->token)) {
             $this->fetchAccessToken();
-        } else {
+        } elseif ($this->isAccessTokenExpired()) {
             $this->refreshAccessToken();
         }
     }
@@ -184,7 +172,7 @@ class GoogleClient
      */
     protected function fetchAccessToken()
     {
-        $code = $this->contextController->getRequest()->getParam('code');
+        $code = $this->request->getParam('code');
 
         if (empty($code)) {
             throw new \Magento\Framework\Exception\LocalizedException(
@@ -274,16 +262,15 @@ class GoogleClient
                 );
         }
 
-        $response = $this->curl->getBody();
-        $decodedResponse = json_decode($response, true);
+        $response = json_decode($this->curl->getBody());
         $status = $this->curl->getStatus();
 
         if ($status === 400 || $status === 401) {
-            $message = $decodedResponse['error']['message'] ?? __('Unspecified OAuth error occurred.');
+            $message = $response->error->message ?? __('Unspecified OAuth error occurred.');
             throw new \Magento\Framework\Exception\LocalizedException(__($message));
         }
 
-        return (object)$decodedResponse;
+        return $response;
     }
 
     /**
@@ -354,10 +341,11 @@ class GoogleClient
 
     /**
      * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getAccessToken()
     {
-        $this->ensureAccessToken();
-        return $this->jsonSerializer->serialize($this->token);
+        $this->fetchOrRefreshAccessToken();
+        return $this->jsonSerializer->serialize($this->token->access_token);
     }
 }

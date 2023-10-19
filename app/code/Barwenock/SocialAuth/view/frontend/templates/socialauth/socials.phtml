@@ -32,12 +32,10 @@
         <?php endif; ?>
 
         <?php if ($block->configHelper->getGoogleStatus() == 1) : ?>
-            <div id="google_login" class="google_login">
-                <a href="<?= $block->getRequestUrl('socialauth/google/request', ['mainw_protocol'=>'http']) ?>">
-                    <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('google'))?>"
-                         alt="<?= $escaper->escapeHtml(__('Google')) ?>"
-                         title="<?= $escaper->escapeHtml(__('Connect with Google')) ?>">
-                </a>
+            <div id="googlelogin" class="googlelogin wksocialsignup">
+                <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('google'))?>"
+                     alt="<?= $escaper->escapeHtml(__('Google')) ?>"
+                     title="<?= $escaper->escapeHtml(__('Connect with Google')) ?>">
             </div>
         <?php endif; ?>
 

@@ -2,8 +2,6 @@
 
 namespace Barwenock\SocialAuth\Block\SocialAuth;
 
-use Magento\Framework\Exception\NoSuchEntityException;
-
 class Socials extends \Magento\Framework\View\Element\Template
 {
     protected $customerSession;
@@ -86,7 +84,7 @@ class Socials extends \Magento\Framework\View\Element\Template
 
         $collection = $this->facebookCustomerRepository->getByCustomerId($customerId);
         foreach ($collection as $data) {
-            if ($data['facebook_id']) {
+            if (isset($data['facebook_id'])) {
                 $userId = $data['facebook_id'];
             }
         }
@@ -109,8 +107,8 @@ class Socials extends \Magento\Framework\View\Element\Template
             "width"=>'700',
             "height" => '300',
             "twitterUrl" => $this->getRequestUrl('socialsignup/twitter/request', ['mainw_protocol'=>'http']),
-            "linkedinUrl" => $this->getRequestUrl('socialsignup/linkedin/request', ['mainw_protocol'=>'http']),
-            "googleUrl" => $this->getRequestUrl('socialsignup/google/request', ['mainw_protocol'=>'http']),
+            "linkedinUrl" => $this->getRequestUrl('socialauth/linkedin/request', ['mainw_protocol'=>'http']),
+            "googleUrl" => $this->getRequestUrl('socialauth/google/request', ['mainw_protocol'=>'http']),
             "instagramUrl" => $this->getRequestUrl('socialsignup/instagram/request', ['mainw_protocol'=>'http'])
         ];
 
