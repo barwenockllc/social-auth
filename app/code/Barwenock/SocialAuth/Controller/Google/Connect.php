@@ -13,7 +13,7 @@ use Webkul\SocialSignup\Helper\Data;
 
 class Connect implements \Magento\Framework\App\ActionInterface
 {
-    protected const CONNECT_TYPE = 'Google';
+    protected const CONNECT_TYPE = 'google';
     /**
      * @var isRegistor
      */
@@ -45,9 +45,9 @@ class Connect implements \Magento\Framework\App\ActionInterface
     private $eavAttribute;
 
     /**
-     * @var Google
+     * @var \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer
      */
-    private $helperGoogle;
+    private $socialCustomerHelper;
 
     /**
      * @var \Magento\Customer\Model\Session
@@ -61,7 +61,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
      * @param Generic $session
      * @param Context $context
      * @param Store $store
-     * @param \Barwenock\SocialAuth\Helper\Authorize\Google $helperGoogle
+     * @param \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper
      * @param Attribute $eavAttribute
      * @param GoogleClient $googleClient
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -74,7 +74,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
         Generic $session,
         Context $context,
         Store $store,
-        \Barwenock\SocialAuth\Helper\Authorize\Google $helperGoogle,
+        \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
         Attribute $eavAttribute,
         \Barwenock\SocialAuth\Controller\Google\GoogleClient $googleClient,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -86,13 +86,13 @@ class Connect implements \Magento\Framework\App\ActionInterface
         \Barwenock\SocialAuth\Helper\CacheManagement $cacheManagement,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\UrlInterface $url,
-        \Barwenock\SocialAuth\Model\Customer\Create $socialAuthCustomer,
+        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate,
         \Magento\Framework\App\Response\Http $redirect
     ) {
         $this->isRegistor = true;
         $this->helper = $helper;
         $this->customerSession = $customerSession;
-        $this->helperGoogle = $helperGoogle;
+        $this->socialCustomerHelper = $socialCustomerHelper;
         $this->eavAttribute = $eavAttribute;
         $this->store = $store;
         $this->_scopeConfig = $scopeConfig;
@@ -105,7 +105,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
         $this->cacheManagment = $cacheManagement;
         $this->requset = $request;
         $this->url = $url;
-        $this->socialAuthCustomer = $socialAuthCustomer;
+        $this->socialCustomerCreate = $socialCustomerCreate;
         $this->redirect = $redirect;
     }
 
@@ -160,30 +160,30 @@ class Connect implements \Magento\Framework\App\ActionInterface
             $attributeCodes = ['socialauth_google_id', 'socialauth_google_token'];
             foreach ($attributeCodes as $attributeCode) {
                 $attributeId = $this->eavAttribute->getIdByCode('customer', $attributeCode);
-                if ($attributeId === false) {
+                if (!$attributeId) {
                     throw new \Magento\Framework\Exception\LocalizedException(
                         __('Attribute %1 does not exist', $attributeCode)
                     );
                 }
             }
 
-            // Google API green light - proceed
             $userInfo = $this->googleClient->api('/userinfo');
             $token = $this->googleClient->getAccessToken();
 
-            $customersByGoogleId = $this->helperGoogle->getCustomersByGoogleId($userInfo->id);
+            $customersByGoogleId = $this->socialCustomerHelper
+                ->getCustomersBySocialId($userInfo->id, self::CONNECT_TYPE);
 
             $this->connectExistingAccount($customersByGoogleId, $userInfo, $token);
 
-            if ($this->_checkAccountByGoogleId($customersByGoogleId)) {
+            if ($this->checkAccountByGoogleId($customersByGoogleId)) {
                 return;
             }
 
-            $customersByEmail = $this->helperGoogle->getCustomersByEmail($userInfo->email);
+            $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($userInfo->email);
 
             if ($customersByEmail->getTotalCount()) {
-                // Email account already exists - attach, login
-                $this->helperGoogle->connectByGoogleId($customersByEmail, $userInfo->id, $token);
+                $this->socialCustomerHelper
+                    ->connectBySocialId($customersByEmail, $userInfo->id, $token, self::CONNECT_TYPE);
 
                 if (!$isCheckoutPageReq) {
                     $this->messageManager->addSuccessMessage(
@@ -231,30 +231,14 @@ class Connect implements \Magento\Framework\App\ActionInterface
             $customersCountByEmail = $customersByEmail->getTotalCount();
 
             if (!$customersCountByGoogleId && !$customersCountByEmail) {
-                if ($this->helper->getCustomerAttributes()) {
-                    $customerData = [
-                        'firstname' => $userInfo->given_name,
-                        'lastname' => $userInfo->family_name,
-                        'email' => $userInfo->email,
-                        'confirmation' => null,
-                        'is_active' => 1,
-                        'socialauth_google_id' => $userInfo->id,
-                        'socialauth_google_token'    => $token,
-                        'label'     => __('google'),
-                        'redirect_path' => 'socialsignup/google/redirect/'
-                    ];
-                    $this->helper->setInSession($customerData);
-                    return 'socialsignup/index/index';
-                } else {
-                    $this->socialAuthCustomer->create(
-                        $userInfo->email,
-                        $userInfo->given_name,
-                        $userInfo->family_name,
-                        $userInfo->id,
-                        $token,
-                        self::CONNECT_TYPE
-                    );
-                }
+                 $this->socialCustomerCreate->create(
+                     $userInfo->email,
+                     $userInfo->given_name,
+                     $userInfo->family_name,
+                     $userInfo->id,
+                     $token,
+                     self::CONNECT_TYPE
+                 );
             }
 
             if (!$isCheckoutPageReq) {
@@ -277,7 +261,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
         }
     }
 
-    private function isRequestValid($errorCode, $code, $state)
+    protected function isRequestValid($errorCode, $code, $state)
     {
         if (!($errorCode || $code) && !$state) {
             // Direct route access - deny
@@ -342,11 +326,8 @@ class Connect implements \Magento\Framework\App\ActionInterface
             // Connect from account dashboard - attach
             $customer = $this->customerSession->getCustomer();
 
-            $this->helperGoogle->connectByGoogleId(
-                $customer,
-                $userInfo->id,
-                $token
-            );
+            $this->socialCustomerHelper
+                ->connectBySocialId($customer, $userInfo->id, $token, self::CONNECT_TYPE);
             if (!$isCheckoutPageReq) {
                 $this->messageManager->addSuccessMessage(
                     __(
@@ -373,11 +354,12 @@ class Connect implements \Magento\Framework\App\ActionInterface
     /**
      * Check customer account by google id
      *
-     * @param  object $customersByGoogleId
+     * @param  $customersByGoogleId
+     * @return bool
+     * @throws \Exception
      */
-    private function _checkAccountByGoogleId($customersByGoogleId)
+    protected function checkAccountByGoogleId($customersByGoogleId)
     {
-        $isCheckoutPageReq = 0;
         $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
         if ($customersByGoogleId->getTotalCount()) {
             $this->isRegistor = false;
@@ -386,7 +368,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
                 $customer = $customerInfo;
             }
 
-            $this->helperGoogle->loginByCustomer($customer);
+            $this->socialCustomerHelper->loginByCustomer($customer);
 
             if (!$isCheckoutPageReq) {
                 $this->messageManager

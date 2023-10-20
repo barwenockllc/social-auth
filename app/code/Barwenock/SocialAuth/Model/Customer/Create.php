@@ -76,22 +76,22 @@ class Create
      * @return void
      * @throws \Exception
      */
-    public function create($email, $firstName, $lastName, $googleId, $token, $loginType)
+    public function create($email, $firstName, $lastName, $socialId, $socialToken, $social)
     {
         try {
             $this->customerModel
                 ->setEmail($email)
                 ->setFirstname($firstName)
                 ->setLastname($lastName)
-                ->setSocialauthGoogleId('socialauth_google_id', $googleId)
-                ->setSocialauthGoogleToken('socialauth_google_token', $token)
+                ->setData('socialauth_' . $social . '_id', $socialId)
+                ->setData('socialauth_' . $social . '_token', $socialToken)
                 ->setConfirmation(null)
                 ->save();
 
             $customerId = $this->customerModel->getId();
 
             $this->loginTypeRepository->save(
-                $this->loginTypeFactory->create()->setCustomerId($customerId)->setLoginType($loginType)
+                $this->loginTypeFactory->create()->setCustomerId($customerId)->setLoginType($social)
             );
 
             if ($this->configHelper->getSubscriptionStatus()) {

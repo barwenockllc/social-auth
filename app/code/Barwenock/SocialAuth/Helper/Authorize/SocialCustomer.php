@@ -2,7 +2,7 @@
 
 namespace Barwenock\SocialAuth\Helper\Authorize;
 
-class Google extends \Magento\Framework\App\Helper\AbstractHelper
+class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
 {
     /**
      * @var \Magento\Customer\Model\Session
@@ -55,25 +55,25 @@ class Google extends \Magento\Framework\App\Helper\AbstractHelper
 
     /**
      * @param $customerData
-     * @param $googleId
+     * @param $socialId
      * @param $token
+     * @param $attributeName
      * @return void
-     * @throws \Magento\Framework\Exception\InputException
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\State\InputMismatchException
+     * @throws \Exception
      */
-    public function connectByGoogleId($customerData, $googleId, $token)
+    public function connectBySocialId($customerData, $socialId, $socialToken, $social)
     {
         $customers = $customerData->getItems();
         foreach ($customers as $customer) {
             $customerModel = $this->customerModel->load($customer->getId());
             $customerModel
-                ->setData('socialauth_google_id', $googleId)
-                ->setData('socialauth_google_token', $token)
+                ->setData('socialauth_' . $social . '_id', $socialId)
+                ->setData('socialauth_' . $social . '_token', $socialToken)
                 ->save();
 
             $customerId = $customer->getId();
         }
+
         $this->customerSession->loginById($customerId);
     }
 
@@ -93,15 +93,10 @@ class Google extends \Magento\Framework\App\Helper\AbstractHelper
         $this->customerSession->loginById($customer->getId());
     }
 
-    /**
-     * @param $googleId
-     * @return \Magento\Customer\Api\Data\CustomerSearchResultsInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function getCustomersByGoogleId($googleId)
+    public function getCustomersBySocialId($socialId, $attributeName)
     {
-        $this->searchCriteriaBuilder->addFilter('socialauth_google_id', $googleId);
+        $this->searchCriteriaBuilder->addFilter('socialauth_' . $attributeName . '_id', $socialId);
+
         if ($this->customerModel->getSharingConfig()->isWebsiteScope()) {
             $this->searchCriteriaBuilder->addFilter(
                 'website_id',
@@ -128,20 +123,24 @@ class Google extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getCustomersByEmail($email)
     {
-        $this->searchCriteriaBuilder->addFilter('email', $email);
-        if ($this->customerModel->getSharingConfig()->isWebsiteScope()) {
-            $this->searchCriteriaBuilder->addFilter(
-                'website_id',
-                $this->storeManager->getStore()->getWebsiteId()
-            );
+        try {
+            $this->searchCriteriaBuilder->addFilter('email', $email);
+            if ($this->customerModel->getSharingConfig()->isWebsiteScope()) {
+                $this->searchCriteriaBuilder->addFilter(
+                    'website_id',
+                    $this->storeManager->getStore()->getWebsiteId()
+                );
+            }
+            if ($this->customerSession->isLoggedIn()) {
+                $this->searchCriteriaBuilder->addFilter(
+                    'entity_id',
+                    $this->customerSession->getCustomerId(),
+                    'neq'
+                );
+            }
+            return $this->customerRepository->getList($this->searchCriteriaBuilder->create());
+        } catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage());
         }
-        if ($this->customerSession->isLoggedIn()) {
-            $this->searchCriteriaBuilder->addFilter(
-                'entity_id',
-                $this->customerSession->getCustomerId(),
-                'neq'
-            );
-        }
-        return $this->customerRepository->getList($this->searchCriteriaBuilder->create());
     }
 }

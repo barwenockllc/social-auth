@@ -15,6 +15,7 @@ use Magento\Framework\Exception\LocalizedException;
 
 class Connect extends Action
 {
+    protected const CONNECT_TYPE = 'linkedin';
      /**
       * @var isRegistor
       */
@@ -25,9 +26,9 @@ class Connect extends Action
      */
     protected $_resultPageFactory;
     /**
-     * @var helperLinkedin
+     * @var \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer
      */
-    protected $_helperLinkedin;
+    protected $socialCustomerHelper;
     /**
      * @var eavAttribute
      */
@@ -44,7 +45,7 @@ class Connect extends Action
      * @param Generic $session
      * @param Context $context
      * @param Store $store
-     * @param Linkedin $helperLinkedin
+     * @param \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper
      * @param Attribute $eavAttribute
      * @param LinkedinClient $linkedinClient
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
@@ -57,28 +58,32 @@ class Connect extends Action
         Generic $session,
         Context $context,
         Store $store,
-        Linkedin $helperLinkedin,
-        Attribute $eavAttribute,
+        \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
         LinkedinClient $linkedinClient,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\Session\SessionManagerInterface $coreSession,
         \Webkul\SocialSignup\Helper\Data $helper,
         PageFactory $resultPageFactory,
-        \Magento\Framework\App\RequestInterface $request
+        \Magento\Framework\App\RequestInterface $request,
+        \Magento\Framework\UrlInterface $url,
+        \Barwenock\SocialAuth\Model\Customer\Create $customerCreate
     ) {
         $this->isRegistor = true;
         $this->customerSession = $customerSession;
-        $this->_helperLinkedin = $helperLinkedin;
-        $this->_eavAttribute = $eavAttribute;
+        $this->socialCustomerHelper = $socialCustomerHelper;
+        $this->eavAttribute = $eavAttribute;
         $this->store = $store;
         $this->_scopeConfig = $scopeConfig;
-        $this->_session = $session;
+        $this->session = $session;
         $this->helper = $helper;
         $this->coreSession = $coreSession;
         $this->linkedinClient = $linkedinClient;
         $this->_resultPageFactory = $resultPageFactory;
         $this->request = $request;
+        $this->url = $url;
+        $this->customerCreate = $customerCreate;
         parent::__construct($context);
     }
 
@@ -134,66 +139,41 @@ class Connect extends Action
         $code = $this->request->getParam('code');
         $state = $this->request->getParam('state');
 
-        if (!($errorCode || $code) && !$state) {
+        if (!$this->isRequestValid($errorCode, $code, $state)) {
             return;
         }
-        $this->referer = $this->_url->getCurrentUrl();
 
-        if ($errorCode) {
-            if ($errorCode === 'access_denied') {
-                unset($this->referer);
-                $this->flag = "noaccess";
-                $this->helper->closeWindow($this);
-            }
-            return;
-        }
         if ($code) {
-            $attributegId = $this->_eavAttribute->getIdByCode('customer', 'socialsignup_lid');
-            $attributegtoken = $this->_eavAttribute->getIdByCode('customer', 'socialsignup_ltoken');
-            if ($attributegId == false || $attributegtoken == false) {
-                throw new  \Magento\Framework\Exception\LocalizedException(
-                    __('Attribute `socialsignup_lid` or `socialsignup_ltoken` not exist')
-                );
-            }
-            $token = $this->linkedinClient->getAccessToken();
-
-            $userInfo = $this->linkedinClient->api('/v2/userinfo');
-
-            $customersByLinkedinId = $this->_helperLinkedin
-                ->getCustomersByLinkedinId($userInfo->sub);
-
-            $this->_connectWithCurrentCustomer($customersByLinkedinId, $userInfo, $token);
-
-            if ($customersByLinkedinId->count()) {
-                $this->isRegistor = false;
-                foreach ($customersByLinkedinId as $key => $customerInfo) {
-                    $customer = $customerInfo;
-                }
-                $this->_helperLinkedin->loginByCustomer($customer);
-                if (!$isCheckoutPageReq) {
-                    $this->messageManager
-                        ->addSuccess(
-                            __('You have successfully logged in using your %1 account.', __('LinkedIn'))
-                        );
-                } else {
-                    $this->coreSession->setSuccessMsg(
-                        __('You have successfully logged in using your %1 account.', __('LinkedIn'))
+            $attributeCodes = ['socialauth_linkedin_id', 'socialauth_linkedin_token'];
+            foreach ($attributeCodes as $attributeCode) {
+                $attributeId = $this->eavAttribute->getIdByCode('customer', $attributeCode);
+                if (!$attributeId) {
+                    throw new \Magento\Framework\Exception\LocalizedException(
+                        __('Attribute %1 does not exist', $attributeCode)
                     );
                 }
+            }
+
+            $userInfo = $this->linkedinClient->api('/v2/userinfo');
+            $token = $this->linkedinClient->getAccessToken();
+
+            $customersByLinkedinId = $this->socialCustomerHelper
+                ->getCustomersBySocialId($userInfo->sub, self::CONNECT_TYPE);
+
+            $this->connectExistingAccount($customersByLinkedinId, $userInfo, $token);
+
+            if ($this->checkAccountByLinkedinId($customersByLinkedinId)) {
                 return;
             }
 
-            $customersByEmail = $this->_helperLinkedin
-                ->getCustomersByEmail($userInfo->email);
+            $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($userInfo->email);
 
-            if ($customersByEmail->count()) {
-                $this->_helperLinkedin->connectByLinkedinId(
-                    $customersByEmail,
-                    $userInfo->sub,
-                    $token
-                );
+            if ($customersByEmail->getTotalCount()) {
+                $this->socialCustomerHelper
+                    ->connectBySocialId($customersByEmail, $userInfo->sub, $token, self::CONNECT_TYPE);
+
                 if (!$isCheckoutPageReq) {
-                    $this->messageManager->addSuccess(
+                    $this->messageManager->addSuccessMessage(
                         __(
                             'We have discovered you already have an account at our store.'
                             .' Your %1 account is now connected to your store account.',
@@ -221,37 +201,22 @@ class Connect extends Action
                     __('Sorry, could not retrieve your %1 last name. Please try again.', __('LinkedIn'))
                 );
             }
-            $customerCountByLinkedinId = $customersByLinkedinId->getSize();
-            $customerCountByEmail = $customersByEmail->getSize();
+            $customerCountByLinkedinId = $customersByLinkedinId->getTotalCount();
+            $customerCountByEmail = $customersByEmail->getTotalCount();
 
             if (!$customerCountByLinkedinId && !$customerCountByEmail) {
-                if ($this->helper->getCustomerAttributes()) {
-                    $customerData = [
-                        'firstname' => $userInfo['localizedFirstName'],
-                        'lastname'  => $userInfo['localizedLastName'],
-                        'email'     => $userInfo['emailAddress'],
-                        'confirmation'  => null,
-                        'is_active' => 1,
-                        'socialsignup_lid' => $userInfo['id'],
-                        'socialsignup_ltoken'    => $token,
-                        'label'     => __('linkedIn'),
-                        'redirect_path' => 'socialsignup/linkedin/redirect/'
-                    ];
-                    $this->helper->setInSession($customerData);
-                    return 'socialsignup/index/index';
-                } else {
-                    $this->_helperLinkedin->connectByCreatingAccount(
+                    $this->customerCreate->create(
                         $userInfo->email,
                         $userInfo->given_name,
                         $userInfo->family_name,
                         $userInfo->sub,
-                        $token
+                        $token,
+                        self::CONNECT_TYPE
                     );
-                }
             }
 
             if (!$isCheckoutPageReq) {
-                $this->messageManager->addSuccess(
+                $this->messageManager->addSuccessMessage(
                     __(
                         'Your %1 account is now connected to your new user account at our store.'.
                         ' Now you can login using our %1 Connect button or using store account credentials'
@@ -272,23 +237,46 @@ class Connect extends Action
         }
     }
 
+    protected function isRequestValid($errorCode, $code, $state)
+    {
+        if (!($errorCode || $code) && !$state) {
+            // Direct route access - deny
+            return false;
+        }
+
+        $this->referer = $this->url->getCurrentUrl();
+
+        if ($errorCode) {
+            if ($errorCode === 'access_denied') {
+                unset($this->referer);
+                $this->flag = "noaccess";
+                $this->helper->closeWindow($this);
+            }
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Connection message
      *
      * @param object $customersByLinkedinId get customer by linkedin id
-     * @param array  $userInfo              user information
+     * @param object  $userInfo              user information
      * @param string $token                 user token
      */
-    private function _connectWithCurrentCustomer($customersByLinkedinId, $userInfo, $token)
+    private function connectExistingAccount($customersByLinkedinId, $userInfo, $token)
     {
-        $isCheckoutPageReq = 0;
         $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
         if ($this->customerSession->isLoggedIn()) {
-            if ($customersByLinkedinId->count()) {
+            if ($customersByLinkedinId->getTotalCount()) {
                 if (!$isCheckoutPageReq) {
                     $this->messageManager
-                        ->addNotice(
-                            __('Your %1 account is already connected to one of our store accounts.', __('LinkedIn'))
+                        ->addNoticeMessage(
+                            __(
+                                'Your %1 account is already connected to one of our store accounts.',
+                                __('LinkedIn')
+                            )
                         );
                 } else {
                     $this->coreSession->setSuccessMsg(
@@ -300,13 +288,14 @@ class Connect extends Action
 
             $customer = $this->customerSession->getCustomer();
 
-            $this->_helperLinkedin->connectByLinkedinId(
+            $this->socialCustomerHelper->connectBySocialId(
                 $customer,
-                $userInfo['sub'],
-                $token
+                $userInfo->sub,
+                $token,
+                self::CONNECT_TYPE
             );
             if (!$isCheckoutPageReq) {
-                $this->messageManager->addSuccess(
+                $this->messageManager->addSuccessMessage(
                     __(
                         'Your %1 account is now connected to your store account.'
                         .' You can now login using our %1 Connect button or using store account credentials'
@@ -331,5 +320,38 @@ class Connect extends Action
 
             return;
         }
+    }
+
+    /**
+     * @param $customersByLinkedinId
+     * @return bool
+     * @throws \Exception
+     */
+    protected function checkAccountByLinkedinId($customersByLinkedinId)
+    {
+        $isCheckoutPageReq = 0;
+        $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
+        if ($customersByLinkedinId->getTotalCount()) {
+            $this->isRegistor = false;
+            // Existing connected user - login
+            foreach ($customersByLinkedinId->getItems() as $customerInfo) {
+                $customer = $customerInfo;
+            }
+
+            $this->socialCustomerHelper->loginByCustomer($customer);
+
+            if (!$isCheckoutPageReq) {
+                $this->messageManager
+                    ->addSuccessMessage(
+                        __('You have successfully logged in using your %1 account.', __('LinkedIn'))
+                    );
+            } else {
+                $this->coreSession->setSuccessMsg(
+                    __('You have successfully logged in using your %1 account.', __('LinkedIn'))
+                );
+            }
+            return true;
+        }
+        return false;
     }
 }

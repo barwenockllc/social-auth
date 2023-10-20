@@ -26,14 +26,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
-    public function getTwitterStatus()
-    {
-        return $this->scopeConfig->getValue(
-            'socialauth/twitter_config/status',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
-    }
-
     public function getGoogleStatus()
     {
         return $this->scopeConfig->getValue(
@@ -108,6 +100,30 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
             'socialauth/linkedin_config/client_secret',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+    }
+
+    public function getTwitterStatus()
+    {
+        return $this->scopeConfig->getValue(
+            'socialauth/twitter_config/status',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    public function getTwitterConsumerKey()
+    {
+        return $this->encryptor->decrypt($this->scopeConfig->getValue(
+            'socialauth/twitter_config/consumer_key',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+    }
+
+    public function getTwitterConsumerSecretKey()
+    {
+        return $this->encryptor->decrypt($this->scopeConfig->getValue(
+            'socialauth/twitter_config/consumer_secret_key',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         ));
     }
