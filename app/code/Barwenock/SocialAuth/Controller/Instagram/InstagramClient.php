@@ -1,13 +1,13 @@
 <?php
 
-namespace Barwenock\SocialAuth\Controller\Linkedin;
+namespace Barwenock\SocialAuth\Controller\Instagram;
 
-class LinkedinClient
+class InstagramClient
 {
-    protected const REDIRECT_URI_ROUTE = 'socialauth/linkedin/connect';
-    protected const OAUTH2_SERVICE_URI = 'https://api.linkedin.com';
-    protected const OAUTH2_AUTH_URI = 'https://www.linkedin.com/oauth/v2/authorization';
-    protected const OAUTH2_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken';
+    public const REDIRECT_URI_ROUTE = 'socialauth/instagram/connect';
+    public const OAUTH2_SERVICE_URI = 'https://graph.instagram.com/';
+    public const OAUTH2_AUTH_URI = 'https://api.instagram.com/oauth/authorize';
+    public const OAUTH2_TOKEN_URI = 'https://api.instagram.com/oauth/access_token';
 
     /**
      * RedirectUri
@@ -22,7 +22,7 @@ class LinkedinClient
     /**
      * Scope
      */
-    protected $scope = ['openid', 'profile', 'email'];
+    protected $scope = ['user_profile'];
 
     /**
      * Token
@@ -35,9 +35,19 @@ class LinkedinClient
     protected $store;
 
     /**
+     * @var \Magento\Framework\Url
+     */
+    protected $url;
+
+    /**
      * @var \Magento\Framework\HTTP\Client\Curl
      */
     protected $curl;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
+     */
+    protected $configHelper;
 
     /**
      * @var \Magento\Framework\App\RequestInterface
@@ -45,27 +55,24 @@ class LinkedinClient
     protected $request;
 
     /**
-     * @var \Magento\Framework\Url
+     * @param \Magento\Store\Model\Store $store
+     * @param \Magento\Framework\Url $url
+     * @param \Magento\Framework\HTTP\Client\Curl $curl
+     * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
+     * @param \Magento\Framework\App\RequestInterface $request
      */
-    protected $url;
-
-    /**
-     * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
-     */
-    protected $configHelper;
-
     public function __construct(
         \Magento\Store\Model\Store $store,
-        \Magento\Framework\HTTP\Client\Curl $curl,
-        \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\Url $url,
-        \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
+        \Magento\Framework\HTTP\Client\Curl $curl,
+        \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
+        \Magento\Framework\App\RequestInterface $request
     ) {
         $this->store = $store;
-        $this->curl = $curl;
-        $this->request = $request;
         $this->url = $url;
+        $this->curl = $curl;
         $this->configHelper = $configHelper;
+        $this->request = $request;
     }
 
     /**
@@ -75,17 +82,14 @@ class LinkedinClient
      */
     public function setParameters($params = [])
     {
-        if (!$this->configHelper->getLinkedinStatus()) {
+        if (!$this->configHelper->getInstagramStatus()) {
             return;
         }
-
-        $this->clientId = $this->getClientId();
-        $this->clientSecret = $this->getClientSecret();
 
         $isSecure = $this->store->isCurrentlySecure();
         $this->protocol = $isSecure ? "https" : "http";
         $this->redirectUri = $this->url->sessionUrlVar(
-            $this->url->getUrl(self::REDIRECT_URI_ROUTE, ['_secure' => $isSecure])
+            $this->url->getUrl(self::REDIRECT_URI_ROUTE, ['_secure' => true])
         );
 
         $this->scope = $params['scope'] ?? $this->getScope();
@@ -105,32 +109,30 @@ class LinkedinClient
             'redirect_uri' => $this->getRedirectUri(),
             'state' => $this->getState(),
             'scope' => implode(',', $this->getScope()),
-            'display' => 'popup'
         ];
 
         return self::OAUTH2_AUTH_URI . '?' . http_build_query($queryParams);
     }
 
     /**
-     * Get response from the api
+     * Get the response from the api
      *
-     * @param  string $endpoint endpoint url
-     * @param  string $method   name of method
-     * @param  array  $params   cotains param
+     * @param string $method method of endpoint
+     * @param array $params
      * @return object
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function api($endpoint, $method = 'GET', $params = [])
+    public function api($method = 'GET', $params = [])
     {
-        $url = self::OAUTH2_SERVICE_URI . $endpoint;
-        $method = strtoupper($method);
+        $authMethod = '&access_token=' . $this->getAccessToken();
+        $url = self::OAUTH2_SERVICE_URI . $this->token->user_id . '?fields=id,username' . $authMethod;
 
-        $params['oauth2_access_token'] = $this->getAccessToken();
+        $method = strtoupper($method);
         return $this->httpRequest($url, $method, $params);
     }
 
     /**
      * Fetch access token
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function fetchAccessToken()
     {
@@ -147,7 +149,7 @@ class LinkedinClient
             'redirect_uri' => $this->getRedirectUri(),
             'client_id' => $this->getClientId(),
             'client_secret' => $this->getClientSecret(),
-            'grant_type' => 'authorization_code'
+            'grant_type' => 'authorization_code',
         ];
 
         $endPointResponse = $this->httpRequest(self::OAUTH2_TOKEN_URI, 'POST', $tokenParams);
@@ -169,7 +171,6 @@ class LinkedinClient
 
         switch ($method) {
             case 'GET':
-                $this->curl->addHeader('Authorization', 'Bearer ' . $params['oauth2_access_token']);
                 $this->curl->addHeader('Connection', 'Keep-Alive');
                 $this->curl->get($url, $params);
                 break;
@@ -198,21 +199,23 @@ class LinkedinClient
     }
 
     /**
-    * Get client id
-    *
-    * @return string
-    */
-    public function getClientId()
+     * Get client id
+     *
+     * @return string
+     */
+    protected function getClientId()
     {
-        return $this->configHelper->getLinkedinClientId();
+        return $this->configHelper->getInstagramClientId();
     }
 
     /**
+     * Get client secret key
+     *
      * @return string
      */
-    public function getClientSecret()
+    protected function getClientSecret()
     {
-        return $this->configHelper->getLinkedinSecret();
+        return $this->configHelper->getInstagramSecretKey();
     }
 
     /**
@@ -223,6 +226,16 @@ class LinkedinClient
     public function getRedirectUri()
     {
         return $this->redirectUri;
+    }
+
+    /**
+     * Set state
+     *
+     * @param string $state
+     */
+    public function setState($state)
+    {
+        $this->state = $state;
     }
 
     /**
@@ -246,20 +259,9 @@ class LinkedinClient
     }
 
     /**
-     * Set state
-     *
-     * @param string $state user state
-     */
-    public function setState($state)
-    {
-        $this->state = $state;
-    }
-
-    /**
      * Get Access token
      *
      * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getAccessToken()
     {

@@ -122,7 +122,7 @@ class Socials extends \Magento\Framework\View\Element\Template
             "uId" => $this->getFacebookUserId(),
             "customerSession" => $this->ifCustomerLogin(),
             "localeCode" => $this->getLocaleCode(),
-            "fbLoginUrl" => $this->getUrl('socialsignup/facebook/login')
+            "fbLoginUrl" => $this->getUrl('socialauth/facebook/authorize')
         ];
 
         return $this->serializer->serialize($data);

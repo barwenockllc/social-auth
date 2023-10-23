@@ -147,7 +147,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
      */
     protected function googleConnect()
     {
-        $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
+        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
         $errorCode = $this->requset->getParam('error');
         $code = $this->requset->getParam('code');
         $state = $this->requset->getParam('state');
@@ -323,7 +323,6 @@ class Connect implements \Magento\Framework\App\ActionInterface
                 return;
             }
 
-            // Connect from account dashboard - attach
             $customer = $this->customerSession->getCustomer();
 
             $this->socialCustomerHelper
@@ -347,7 +346,6 @@ class Connect implements \Magento\Framework\App\ActionInterface
                     )
                 );
             }
-            return;
         }
     }
 

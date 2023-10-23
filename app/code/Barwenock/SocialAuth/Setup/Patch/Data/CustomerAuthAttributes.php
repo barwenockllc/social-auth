@@ -140,6 +140,19 @@ class CustomerAuthAttributes implements \Magento\Framework\Setup\Patch\DataPatch
                 "unique"     => false,
                 "note"       => ""
             ],
+            'socialauth_facebook_id' => [
+                "type"     => "text",
+                "backend"  => "",
+                "label"    => "Social Authorization Facebook ID",
+                "input"    => "text",
+                "source"   => "",
+                "visible"  => false,
+                "required" => false,
+                "default" => "",
+                "frontend" => "",
+                "unique"     => false,
+                "note"       => ""
+            ]
         ];
 
         foreach ($attributes as $code => $options) {

@@ -4,10 +4,21 @@ namespace Barwenock\SocialAuth\Helper\Adminhtml;
 
 class Config extends \Magento\Framework\App\Helper\AbstractHelper
 {
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
     protected $scopeConfig;
 
+    /**
+     * @var \Magento\Framework\Encryption\EncryptorInterface
+     */
     protected $encryptor;
 
+    /**
+     * @param \Magento\Framework\App\Helper\Context $context
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+     */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -50,6 +61,22 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    public function getInstagramClientId()
+    {
+        return $this->encryptor->decrypt($this->scopeConfig->getValue(
+            'socialauth/instagram_config/client_id',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+    }
+
+    public function getInstagramSecretKey()
+    {
+        return $this->encryptor->decrypt($this->scopeConfig->getValue(
+            'socialauth/instagram_config/client_secret',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+    }
+
     public function getSocialConnectImage($type)
     {
         $configPath = "socialauth/{$type}_config/icon_login";
@@ -60,6 +87,14 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
             'socialauth/facebook_config/application_id',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ));
+    }
+
+    public function getFacebookAppSecret()
+    {
+        return $this->encryptor->decrypt($this->scopeConfig->getValue(
+            'socialauth/facebook_config/application_secret',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         ));
     }
