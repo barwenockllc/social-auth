@@ -286,14 +286,8 @@ class Connect extends Action
                 return;
             }
 
-            $customer = $this->customerSession->getCustomer();
-
-            $this->socialCustomerHelper->connectBySocialId(
-                $customer,
-                $userInfo->sub,
-                $token,
-                self::CONNECT_TYPE
-            );
+            $this->socialCustomerHelper
+                ->connectBySocialId($customersByLinkedinId, $userInfo->sub, $token, self::CONNECT_TYPE);
             if (!$isCheckoutPageReq) {
                 $this->messageManager->addSuccessMessage(
                     __(

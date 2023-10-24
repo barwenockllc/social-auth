@@ -288,10 +288,8 @@ class Connect extends Action
                 return;
             }
 
-            $customer = $this->customerSession->getCustomer();
-
             $this->socialCustomerHelper
-                ->connectBySocialId($customer, $userInfo->id, $token, self::CONNECT_TYPE);
+                ->connectBySocialId($customersByInstagramId, $userInfo->id, $token, self::CONNECT_TYPE);
             if (!$isCheckoutPageReq) {
                 $this->messageManager->addSuccessMessage(
                     __(
