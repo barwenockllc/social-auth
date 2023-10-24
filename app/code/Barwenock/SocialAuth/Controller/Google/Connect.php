@@ -323,10 +323,8 @@ class Connect implements \Magento\Framework\App\ActionInterface
                 return;
             }
 
-            $customer = $this->customerSession->getCustomer();
-
             $this->socialCustomerHelper
-                ->connectBySocialId($customer, $userInfo->id, $token, self::CONNECT_TYPE);
+                ->connectBySocialId($customersByGoogleId, $userInfo->id, $token, self::CONNECT_TYPE);
             if (!$isCheckoutPageReq) {
                 $this->messageManager->addSuccessMessage(
                     __(
