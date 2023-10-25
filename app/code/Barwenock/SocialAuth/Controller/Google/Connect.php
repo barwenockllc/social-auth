@@ -156,16 +156,15 @@ class Connect implements \Magento\Framework\App\ActionInterface
             return;
         }
 
-        if ($code) {
-            $attributeCodes = ['socialauth_google_id', 'socialauth_google_token'];
-            foreach ($attributeCodes as $attributeCode) {
-                $attributeId = $this->eavAttribute->getIdByCode('customer', $attributeCode);
-                if (!$attributeId) {
-                    throw new \Magento\Framework\Exception\LocalizedException(
-                        __('Attribute %1 does not exist', $attributeCode)
-                    );
-                }
+        $attributeCodes = ['socialauth_google_id', 'socialauth_google_token'];
+        foreach ($attributeCodes as $attributeCode) {
+            $attributeId = $this->eavAttribute->getIdByCode('customer', $attributeCode);
+            if (!$attributeId) {
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    __('Attribute %1 does not exist', $attributeCode)
+                );
             }
+        }
 
             $userInfo = $this->googleClient->api('/userinfo');
             $token = $this->googleClient->getAccessToken();
@@ -175,89 +174,88 @@ class Connect implements \Magento\Framework\App\ActionInterface
 
             $this->connectExistingAccount($customersByGoogleId, $userInfo, $token);
 
-            if ($this->checkAccountByGoogleId($customersByGoogleId)) {
-                return;
-            }
+        if ($this->checkAccountByGoogleId($customersByGoogleId)) {
+            return;
+        }
 
             $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($userInfo->email);
 
-            if ($customersByEmail->getTotalCount()) {
-                $this->socialCustomerHelper
-                    ->connectBySocialId($customersByEmail, $userInfo->id, $token, self::CONNECT_TYPE);
-
-                if (!$isCheckoutPageReq) {
-                    $this->messageManager->addSuccessMessage(
-                        __(
-                            'We have discovered you already have an account at our store.'
-                            .' Your %1 account is now connected to your store account.',
-                            __('Google')
-                        )
-                    );
-                } else {
-                    $this->coreSession->setSuccessMsg(__(
-                        'We have discovered you already have an account at our store.'
-                        .' Your %1 account is now connected to your store account.',
-                        __('Google')
-                    ));
-                }
-                return;
-            }
-
-            // New connection - create, attach, login
-            if (empty($userInfo->given_name)) {
-                if (!$isCheckoutPageReq) {
-                    $this->messageManager->addErrorMessage(
-                        __('Sorry, could not retrieve your %1 first name. Please try again.', __('Google'))
-                    );
-                } else {
-                    $this->coreSession->setErrorMsg(
-                        __('Sorry, could not retrieve your %1 first name. Please try again.', __('Google'))
-                    );
-                }
-            }
-
-            if (empty($userInfo->family_name)) {
-                if (!$isCheckoutPageReq) {
-                    $this->messageManager->addErrorMessage(
-                        __('Sorry, could not retrieve your %2 last name. Please try again.', __('Google'))
-                    );
-                } else {
-                    $this->coreSession->setErrorMsg(
-                        __('Sorry, could not retrieve your %1 last name. Please try again.', __('Google'))
-                    );
-                }
-            }
-            $customersCountByGoogleId = $customersByGoogleId->getTotalCount();
-            $customersCountByEmail = $customersByEmail->getTotalCount();
-
-            if (!$customersCountByGoogleId && !$customersCountByEmail) {
-                 $this->socialCustomerCreate->create(
-                     $userInfo->email,
-                     $userInfo->given_name,
-                     $userInfo->family_name,
-                     $userInfo->id,
-                     $token,
-                     self::CONNECT_TYPE
-                 );
-            }
+        if ($customersByEmail->getTotalCount()) {
+            $this->socialCustomerHelper
+                ->connectBySocialId($customersByEmail, $userInfo->id, $token, self::CONNECT_TYPE);
 
             if (!$isCheckoutPageReq) {
-                $this->messageManager->addSuccess(
+                $this->messageManager->addSuccessMessage(
                     __(
-                        'Your %1 account is now connected to your new user account at our store.'
-                        .' Now you can login using our %1 Connect button or using store account credentials'
-                        .' you will receive to your email address.',
+                        'We have discovered you already have an account at our store.'
+                        .' Your %1 account is now connected to your store account.',
                         __('Google')
                     )
                 );
             } else {
                 $this->coreSession->setSuccessMsg(__(
+                    'We have discovered you already have an account at our store.'
+                    .' Your %1 account is now connected to your store account.',
+                    __('Google')
+                ));
+            }
+            return;
+        }
+
+            // New connection - create, attach, login
+        if (empty($userInfo->given_name)) {
+            if (!$isCheckoutPageReq) {
+                $this->messageManager->addErrorMessage(
+                    __('Sorry, could not retrieve your %1 first name. Please try again.', __('Google'))
+                );
+            } else {
+                $this->coreSession->setErrorMsg(
+                    __('Sorry, could not retrieve your %1 first name. Please try again.', __('Google'))
+                );
+            }
+        }
+
+        if (empty($userInfo->family_name)) {
+            if (!$isCheckoutPageReq) {
+                $this->messageManager->addErrorMessage(
+                    __('Sorry, could not retrieve your %2 last name. Please try again.', __('Google'))
+                );
+            } else {
+                $this->coreSession->setErrorMsg(
+                    __('Sorry, could not retrieve your %1 last name. Please try again.', __('Google'))
+                );
+            }
+        }
+            $customersCountByGoogleId = $customersByGoogleId->getTotalCount();
+            $customersCountByEmail = $customersByEmail->getTotalCount();
+
+        if (!$customersCountByGoogleId && !$customersCountByEmail) {
+             $this->socialCustomerCreate->create(
+                 $userInfo->email,
+                 $userInfo->given_name,
+                 $userInfo->family_name,
+                 $userInfo->id,
+                 $token,
+                 self::CONNECT_TYPE
+             );
+        }
+
+        if (!$isCheckoutPageReq) {
+            $this->messageManager->addSuccess(
+                __(
                     'Your %1 account is now connected to your new user account at our store.'
                     .' Now you can login using our %1 Connect button or using store account credentials'
                     .' you will receive to your email address.',
                     __('Google')
-                ));
-            }
+                )
+            );
+        } else {
+            $this->coreSession->setSuccessMsg(__(
+                'Your %1 account is now connected to your new user account at our store.'
+                .' Now you can login using our %1 Connect button or using store account credentials'
+                .' you will receive to your email address.',
+                __('Google')
+            ));
         }
     }
 

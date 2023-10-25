@@ -48,7 +48,8 @@ class Request implements \Magento\Framework\App\ActionInterface
         \Magento\Framework\App\Response\Http $redirect,
         \Magento\Framework\UrlInterface $url,
         \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\Controller\ResultFactory $resultFactory
+        \Magento\Framework\Controller\ResultFactory $resultFactory,
+        \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
     ) {
         $this->session = $session;
         $this->twitterClient = $twitterClient;
@@ -56,6 +57,7 @@ class Request implements \Magento\Framework\App\ActionInterface
         $this->url = $url;
         $this->request = $request;
         $this->resultFactory = $resultFactory;
+        $this->configHelper = $configHelper;
     }
 
     public function execute()
@@ -63,7 +65,7 @@ class Request implements \Magento\Framework\App\ActionInterface
         $this->session->unsIsSocialSignupCheckoutPageReq();
         $this->twitterClient->setParameters();
 
-        if (!($this->twitterClient->isEnabled())) {
+        if (!$this->configHelper->getTwitterStatus()) {
             return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
         }
 

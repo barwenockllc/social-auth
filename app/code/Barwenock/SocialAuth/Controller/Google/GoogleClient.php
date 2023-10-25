@@ -147,10 +147,9 @@ class GoogleClient
     public function api($endpoint, $method = 'GET', $params = [])
     {
         $url = self::OAUTH2_SERVICE_URI . $endpoint;
-        $method = strtoupper($method);
 
         $params['access_token'] = $this->getAccessToken();
-        return $this->httpRequest($url, $method, $params);
+        return $this->httpRequest($url, strtoupper($method), $params);
     }
 
     /**
