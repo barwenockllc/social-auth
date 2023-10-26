@@ -10,14 +10,12 @@ class Socials extends \Magento\Framework\View\Element\Template
         \Magento\Framework\View\Element\Template\Context $context,
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
         \Magento\Customer\Model\Session $customerSession,
-        \Barwenock\SocialAuth\Api\FacebookCustomerRepositoryInterface $facebookCustomerRepository,
         \Magento\Framework\Locale\Resolver $localeResolver,
         \Magento\Framework\Serialize\Serializer\Json $serializer,
         array $data = []
     ) {
         $this->configHelper = $configHelper;
         $this->customerSession = $customerSession;
-        $this->facebookCustomerRepository = $facebookCustomerRepository;
         $this->localeResolver = $localeResolver;
         $this->serializer = $serializer;
         parent::__construct($context, $data);
@@ -77,20 +75,6 @@ class Socials extends \Magento\Framework\View\Element\Template
         return $image;
     }
 
-    public function getFacebookUserId()
-    {
-        $userId = 0;
-        $customerId = $this->customerSession->getCustomerId();
-
-        $collection = $this->facebookCustomerRepository->getByCustomerId($customerId);
-        foreach ($collection as $data) {
-            if (isset($data['facebook_id'])) {
-                $userId = $data['facebook_id'];
-            }
-        }
-        return $userId;
-    }
-
     public function getLocaleCode()
     {
         return $this->localeResolver->getLocale();
@@ -119,7 +103,7 @@ class Socials extends \Magento\Framework\View\Element\Template
     {
         $data = [
             "fbAppId" => $this->configHelper->getFacebookAppId(),
-            "uId" => $this->getFacebookUserId(),
+            "uId" => 0,
             "customerSession" => $this->ifCustomerLogin(),
             "localeCode" => $this->getLocaleCode(),
             "fbLoginUrl" => $this->getUrl('socialauth/facebook/authorize')

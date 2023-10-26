@@ -86,7 +86,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         \Magento\Framework\Controller\ResultFactory $resultFactory,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
-        \Barwenock\SocialAuth\Api\FacebookCustomerRepositoryInterface $facebookCustomerRepository,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
         \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
     ) {
@@ -103,7 +102,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->resultFactory = $resultFactory;
         $this->messageManager = $messageManager;
         $this->configHelper = $configHelper;
-        $this->facebookCustomerRepository = $facebookCustomerRepository;
         $this->socialCustomerHelper = $socialCustomerHelper;
         $this->socialCustomerCreate = $socialCustomerCreate;
         $this->isRegistor = false;

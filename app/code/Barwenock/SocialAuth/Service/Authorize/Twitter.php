@@ -4,168 +4,158 @@ namespace Barwenock\SocialAuth\Service\Authorize;
 
 class Twitter
 {
-    protected const ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/request_token';
+    protected const REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token';
+    protected const ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token';
+    protected const AUTHENTICATE_URL = 'https://api.twitter.com/oauth/authenticate';
+    protected const ACCOUNT_VERIFY_URL = 'https://api.twitter.com/1.1/account/verify_credentials.json';
     protected const REDIRECT_URI_ROUTE = 'socialauth/twitter/connect';
+
+    /**
+     * @var \Magento\Framework\Url
+     */
+    protected $url;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
+     */
+    protected $configHelper;
+
+    /**
+     * @var \Magento\Framework\HTTP\Client\Curl
+     */
+    protected $curl;
+
+    /**
+     * @param \Magento\Framework\Url $url
+     * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
+     * @param \Magento\Framework\HTTP\Client\Curl $curl
+     */
     public function __construct(
-        \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
         \Magento\Framework\Url $url,
-        \Magento\Framework\HTTP\Client\Curl $curl
+        \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
+        \Magento\Framework\HTTP\Client\Curl $curl,
+        \Magento\Store\Model\Store $store
     ) {
         $this->url = $url;
         $this->configHelper = $configHelper;
         $this->curl = $curl;
     }
 
-    public function getOauthToken()
+    /**
+     * @return array
+     */
+    public function getRequestToken()
+    {
+        $requestTokenUrl = self::REQUEST_TOKEN_URL;
+        $additionalParams = [
+            'oauth_callback' => $this->url->getUrl(self::REDIRECT_URI_ROUTE, ['_secure' => true])
+        ];
+
+        $authHeader = $this->authorization($additionalParams, self::REQUEST_TOKEN_URL, 'POST');
+
+        $this->curl->addHeader('Authorization', $authHeader);
+        $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+
+        $this->curl->post($requestTokenUrl, []);
+        $response = $this->curl->getBody();
+
+        // Parse the response to extract the access token and secret
+        parse_str($response, $accessTokenInfo);
+        return $accessTokenInfo;
+    }
+
+    /**
+     * @param $oauthToken
+     * @param $oauthVerifier
+     * @return array
+     */
+    public function getAccessToken($oauthToken, $oauthVerifier)
     {
         $accessTokenUrl = self::ACCESS_TOKEN_URL;
-        $callbackUrl = $this->url->getUrl(self::REDIRECT_URI_ROUTE, ['_secure' => true]);
-        $oauthParams = [
-            'oauth_callback' => $callbackUrl,
-            'oauth_consumer_key' => $this->configHelper->getTwitterConsumerKey(),
-            'oauth_nonce' => md5(uniqid()),
-            'oauth_signature_method' => 'HMAC-SHA1',
-            'oauth_timestamp' => time(),
-            'oauth_version' => '1.0',
-        ];
+        $additionalParams = ['oauth_token' => $oauthToken, 'oauth_verifier' => $oauthVerifier];
 
-        // Sort the parameters alphabetically
-        ksort($oauthParams);
-
-        // Construct the base string
-        $baseString = 'POST&' . rawurlencode($accessTokenUrl) . '&';
-        $baseString .= rawurlencode(http_build_query($oauthParams));
-
-        // Construct the signing key
-        $signingKey = rawurlencode($this->configHelper->getTwitterConsumerSecretKey()) . '&';
-
-        // Calculate the signature
-        $oauthParams['oauth_signature'] = base64_encode(hash_hmac('sha1', $baseString, $signingKey, true));
-
-        // Build the Authorization header
-        $authHeader = 'OAuth ' . http_build_query($oauthParams, '', ', ');
-
-        $ch = curl_init($accessTokenUrl);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: ' . $authHeader]);
-
-        // Execute the cURL request
-        $response = curl_exec($ch);
-
-        // Check for errors
-        if ($response === false) {
-            return ['error' => 'cURL Error: ' . curl_error($ch)];
-        }
-
-        // Parse the response to extract the access token and secret
-        parse_str($response, $accessTokenInfo);
-
-        // Close the cURL session
-        curl_close($ch);
-
-        return $accessTokenInfo;
-    }
-
-    function getAccessToken($oauthToken, $oauthVerifier)
-    {
-        $accessTokenUrl = 'https://api.twitter.com/oauth/access_token';
-        // Prepare the OAuth parameters for the access token request
-        $oauthParams = [
-            'oauth_consumer_key' => $this->configHelper->getTwitterConsumerKey(),
-            'oauth_token' => $oauthToken,
-            'oauth_verifier' => $oauthVerifier,
-            'oauth_signature_method' => 'HMAC-SHA1',
-            'oauth_timestamp' => time(),
-            'oauth_nonce' => uniqid(),
-            'oauth_version' => '1.0',
-        ];
-
-        // Sort the parameters alphabetically
-        ksort($oauthParams);
-
-        // Construct the base string
-        $baseString = 'POST&' . rawurlencode($accessTokenUrl) . '&';
-        $baseString .= rawurlencode(http_build_query($oauthParams));
-
-        // Construct the signing key
-        $signingKey = rawurlencode($this->configHelper->getTwitterConsumerSecretKey()) . '&';
-
-        // Calculate the signature
-        $oauthParams['oauth_signature'] = base64_encode(hash_hmac('sha1', $baseString, $signingKey, true));
-
-        // Build the Authorization header
-        $authHeader = 'OAuth ' . http_build_query($oauthParams, '', ', ');
+        $authHeader = $this->authorization($additionalParams, $accessTokenUrl, 'POST');
 
         // Prepare the cURL request
-        $ch = curl_init($accessTokenUrl);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: ' . $authHeader]);
+        $this->curl->addHeader('Authorization', $authHeader);
+        $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
 
-        // Execute the cURL request
-        $response = curl_exec($ch);
-
-        // Check for errors
-        if ($response === false) {
-            return ['error' => 'cURL Error: ' . curl_error($ch)];
-        }
+        $this->curl->post($accessTokenUrl, []);
+        $response = $this->curl->getBody();
 
         // Parse the response to extract the access token and secret
         parse_str($response, $accessTokenInfo);
-
-        // Close the cURL session
-        curl_close($ch);
-
         return $accessTokenInfo;
     }
 
+    /**
+     * @param $oauthToken
+     * @param $oauthTokenSecret
+     * @return mixed
+     */
     public function getUserInfo($oauthToken, $oauthTokenSecret)
     {
-        $accessTokenUrl = 'https://api.twitter.com/1.1/account/verify_credentials.json';
+        $accessTokenUrl = self::ACCOUNT_VERIFY_URL;
+        $additionalParams = ['include_email' => 'true', 'oauth_token' => $oauthToken];
 
+        $authHeader = $this->authorization($additionalParams, $accessTokenUrl, 'GET', $oauthTokenSecret);
+
+        $this->curl->addHeader('Authorization', $authHeader);
+        $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+        $this->curl->get($accessTokenUrl . '?' . http_build_query(['include_email' => 'true']));
+
+        $response = $this->curl->getBody();
+        return json_decode($response, true);
+    }
+
+    /**
+     * @param $additionalParams
+     * @param $url
+     * @param $method
+     * @param $oauthTokenSecret
+     * @return string
+     */
+    protected function authorization($additionalParams, $url, $method = 'GET', $oauthTokenSecret = null)
+    {
         $oauthParams = [
             'oauth_consumer_key' => $this->configHelper->getTwitterConsumerKey(),
-            'oauth_token' => $oauthToken,
             'oauth_signature_method' => 'HMAC-SHA1',
             'oauth_timestamp' => time(),
             'oauth_nonce' => uniqid(),
             'oauth_version' => '1.0',
         ];
 
-        // Sort the parameters alphabetically
-        ksort($oauthParams);
+        $params = array_merge($oauthParams, $additionalParams);
+
+        ksort($params);
 
         // Construct the base string
-        $baseString = 'GET&' . rawurlencode($accessTokenUrl) . '&';
-        $baseString .= rawurlencode(http_build_query($oauthParams));
+        $baseString = "$method&" . rawurlencode($url) . '&';
+        $baseString .= rawurlencode(http_build_query($params));
 
         // Construct the signing key
         $signingKey = rawurlencode($this->configHelper->getTwitterConsumerSecretKey()) . '&' . $oauthTokenSecret;
 
         // Calculate the signature
-        $oauthParams['oauth_signature'] = base64_encode(hash_hmac('sha1', $baseString, $signingKey, true));
+        $params['oauth_signature'] = base64_encode(hash_hmac('sha1', $baseString, $signingKey, true));
 
         // Build the Authorization header
-        $authHeader = 'OAuth ' . http_build_query($oauthParams, '', ', ');
+        return 'OAuth ' . http_build_query($params, '', ', ');
+    }
 
-        $ch = curl_init($accessTokenUrl);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: ' . $authHeader]);
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    public function createRequestUrl()
+    {
+        $token = $this->getRequestToken();
 
-        // Execute the cURL request
-        $response = curl_exec($ch);
-
-        // Check for errors
-        if ($response === false) {
-            return ['error' => 'cURL Error: ' . curl_error($ch)];
+        if (!isset($token['oauth_token'])) {
+            throw new \Exception('Could not fetch access token for Twitter');
         }
 
-        // Parse the response to extract the access token and secret
-
-        // Close the cURL session
-        curl_close($ch);
-
-        return json_decode($response, true);
+        $queryParams = ['oauth_token' => $token['oauth_token']];
+        return self::AUTHENTICATE_URL . '?' . http_build_query($queryParams);
     }
 }

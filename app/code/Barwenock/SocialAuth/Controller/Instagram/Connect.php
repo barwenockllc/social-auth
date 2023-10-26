@@ -203,7 +203,7 @@ class Connect extends Action
                 return;
             }
 
-            $userInfo->full_name = (isset($userInfo->full_name))?$userInfo->full_name:$userInfo->username;
+            $userInfo->full_name = (isset($userInfo->full_name)) ? $userInfo->full_name : $userInfo->username;
             if (empty($userInfo->full_name)) {
                 throw new LocalizedException(
                     __('Sorry, could not retrieve your %1 last name. Please try again.', __('Instagram'))
@@ -233,8 +233,8 @@ class Connect extends Action
                         $token,
                         self::CONNECT_TYPE
                     );
-                } catch (\Exception $e) {
-                    $this->messageManager->addErrorMessage($e->getMessage());
+                } catch (\Exception $exception) {
+                    throw new \Exception($exception->getMessage());
                 }
             }
 
@@ -276,9 +276,7 @@ class Connect extends Action
                 if (!$isCheckoutPageReq) {
                     $this->messageManager->addNoticeMessage(__(
                         'Your %1 account is already connected to one of our store accounts.',
-                        __(
-                            'Instagram'
-                        )
+                        __('Instagram')
                     ));
                 } else {
                     $this->coreSession->setSuccessMsg(
@@ -309,6 +307,7 @@ class Connect extends Action
             }
         }
     }
+
     /**
      * Check Account By Instagram Id
      *
@@ -320,7 +319,6 @@ class Connect extends Action
         $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
         if ($customersByInstagramId->getTotalCount()) {
             $this->isRegistor = false;
-            // Existing connected user - login
             foreach ($customersByInstagramId->getItems() as $customerInfo) {
                 $customer = $customerInfo;
             }
@@ -328,10 +326,9 @@ class Connect extends Action
             $this->socialCustomerHelper->loginByCustomer($customer);
 
             if (!$isCheckoutPageReq) {
-                $this->messageManager
-                    ->addSuccessMessage(
-                        __('You have successfully logged in using your %1 account.', __('Instagram'))
-                    );
+                $this->messageManager->addSuccessMessage(
+                    __('You have successfully logged in using your %1 account.', __('Instagram'))
+                );
             } else {
                 $this->coreSession->setSuccessMsg(
                     __('You have successfully logged in using your %1 account.', __('Instagram'))
