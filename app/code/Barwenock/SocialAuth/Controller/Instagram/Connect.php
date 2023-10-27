@@ -56,7 +56,7 @@ class Connect extends Action
      * @param Context $context
      * @param Store $store
      * @param Attribute $eavAttribute
-     * @param InstagramClient $instagramClient
+     * @param \Barwenock\SocialAuth\Service\Authorize\Instagram $instagramClient
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
      * @param \Magento\Customer\Model\Session $customerSession
@@ -68,7 +68,7 @@ class Connect extends Action
         Context $context,
         Store $store,
         Attribute $eavAttribute,
-        \Barwenock\SocialAuth\Controller\Instagram\InstagramClient $instagramClient,
+        \Barwenock\SocialAuth\Service\Authorize\Instagram $instagramService,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Session\SessionManagerInterface $coreSession,
         \Magento\Customer\Model\Session $customerSession,
@@ -78,7 +78,8 @@ class Connect extends Action
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\Url $url,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
-        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
+        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate,
+        \Magento\Framework\App\Response\Http $redirect
     ) {
         $this->isRegistor = true;
         $this->customerSession = $customerSession;
@@ -88,13 +89,14 @@ class Connect extends Action
         $this->_scopeConfig = $scopeConfig;
         $this->coreSession = $coreSession;
         $this->session = $session;
-        $this->instagramClient = $instagramClient;
+        $this->instagramService = $instagramService;
         $this->_resultPageFactory = $resultPageFactory;
         $this->cacheManagment = $cacheManagement;
         $this->requset = $request;
         $this->url = $url;
         $this->socialCustomerHelper = $socialCustomerHelper;
         $this->socialCustomerCreate = $socialCustomerCreate;
+        $this->redirect = $redirect;
         parent::__construct($context);
     }
 
@@ -103,41 +105,30 @@ class Connect extends Action
      */
     public function execute()
     {
-        $this->instagramClient->setParameters();
+        $this->instagramService->setParameters();
         $this->cacheManagment->cleanCache();
 
         try {
             $isSecure = $this->_store->isCurrentlySecure();
             $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
 
-            $redirectPath = $this->instagramConnect();
-            if ($redirectPath) {
-                $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
-                return $resultRedirect->setPath($redirectPath);
-            }
+            $this->instagramConnect();
         } catch (\Exception $e) {
             if (!$isCheckoutPageReq) {
-                $this->messageManager->addError($e->getMessage());
+                $this->messageManager->addErrorMessage($e->getMessage());
             } else {
                 $this->coreSession->setErrorMsg($e->getMessage());
             }
         }
 
         if (!empty($this->referer)) {
-            if (empty($this->flag)) {
-                $redirectUrl = $this->_url->getUrl('socialsignup/google/redirect/');
-                if (!$isSecure) {
-                    $redirectUrl = str_replace("https://", "http://", $redirectUrl);
-                }
-                $this->coreSession->start();
-                $this->coreSession->setIsRegistor($this->isRegistor);
-                $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
-                return $resultRedirect->setPath($redirectUrl);
-            } else {
-                $this->helper->closeWindow($this);
+            $redirectUrl = $this->_url->getUrl('socialauth/authorize/redirect/');
+            if (!$isSecure) {
+                $redirectUrl = str_replace("https://", "http://", $redirectUrl);
             }
+            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath($redirectUrl);
         } else {
-            $this->helper->redirect404($this);
+            return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
         }
     }
 
@@ -166,8 +157,8 @@ class Connect extends Action
                 }
             }
 
-            $userInfo = $this->instagramClient->api();
-            $token = $this->instagramClient->getAccessToken();
+            $userInfo = $this->instagramService->api();
+            $token = $this->instagramService->getAccessToken();
 
             $customersByInstagramId = $this->socialCustomerHelper
                 ->getCustomersBySocialId($userInfo->id, self::CONNECT_TYPE);
@@ -357,7 +348,7 @@ class Connect extends Action
             if ($errorCode === 'access_denied') {
                 unset($this->referer);
                 $this->flag = "noaccess";
-                $this->helper->closeWindow($this);
+                return false;
             }
             return false;
         }

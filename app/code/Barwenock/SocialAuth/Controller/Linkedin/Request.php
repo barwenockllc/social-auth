@@ -10,11 +10,6 @@ class Request implements \Magento\Framework\App\ActionInterface
     protected $session;
 
     /**
-     * @var \Barwenock\SocialAuth\Controller\Linkedin\LinkedinClient
-     */
-    protected $linkedinClient;
-
-    /**
      * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
      */
     protected $configHelper;
@@ -40,36 +35,41 @@ class Request implements \Magento\Framework\App\ActionInterface
     protected $url;
 
     /**
+     * @var \Barwenock\SocialAuth\Service\Authorize\Linkedin
+     */
+    protected $linkedinService;
+
+    /**
      * @param \Magento\Framework\Session\Generic $session
-     * @param \Barwenock\SocialAuth\Controller\Linkedin\LinkedinClient $linkedinClient
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\Controller\ResultFactory $resultFactory
      * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
      * @param \Magento\Framework\App\Response\Http $redirect
      * @param \Magento\Framework\UrlInterface $url
+     * @param \Barwenock\SocialAuth\Service\Authorize\Linkedin $linkedinService
      */
     public function __construct(
         \Magento\Framework\Session\Generic $session,
-        \Barwenock\SocialAuth\Controller\Linkedin\LinkedinClient $linkedinClient,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\Controller\ResultFactory $resultFactory,
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
         \Magento\Framework\App\Response\Http $redirect,
         \Magento\Framework\UrlInterface $url,
+        \Barwenock\SocialAuth\Service\Authorize\Linkedin $linkedinService
     ) {
         $this->session = $session;
-        $this->linkedinClient = $linkedinClient;
         $this->request = $request;
         $this->resultFactory = $resultFactory;
         $this->configHelper = $configHelper;
         $this->redirect = $redirect;
         $this->url = $url;
+        $this->linkedinService = $linkedinService;
     }
 
     public function execute()
     {
         $this->session->unsIsSocialSignupCheckoutPageReq();
-        $this->linkedinClient->setParameters();
+        $this->linkedinService->setParameters();
 
         if (!$this->configHelper->getLinkedinStatus()) {
             return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
@@ -77,7 +77,6 @@ class Request implements \Magento\Framework\App\ActionInterface
 
         $csrf = hash('sha256', uniqid(rand(), true));
         $this->session->setLinkedinCsrf($csrf);
-        $this->linkedinClient->setState($csrf);
 
         $post = $this->request->getParams();
         $mainwProtocol = $this->request->getParam('mainw_protocol');
@@ -89,6 +88,6 @@ class Request implements \Magento\Framework\App\ActionInterface
         $this->session->setIsSecure($mainwProtocol);
 
         return $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT)
-            ->setPath($this->linkedinClient->createRequestUrl());
+            ->setPath($this->linkedinService->createRequestUrl());
     }
 }

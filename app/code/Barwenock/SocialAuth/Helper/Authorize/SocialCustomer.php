@@ -12,7 +12,7 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @var \Magento\Customer\Model\Customer
      */
-    protected $customerModel;
+    protected $customer;
 
     /**
      * @var \Magento\Store\Model\StoreManager
@@ -33,7 +33,7 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Customer\Model\Customer $customerModel
+     * @param \Magento\Customer\Model\Customer $customer
      * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
      */
@@ -41,12 +41,12 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Customer\Model\Customer $customerModel,
+        \Magento\Customer\Model\Customer $customer,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository
     ) {
         $this->customerSession = $customerSession;
-        $this->customerModel = $customerModel;
+        $this->customer = $customer;
         $this->storeManager = $storeManager;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->customerRepository = $customerRepository;
@@ -65,8 +65,8 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $customers = $customerData->getItems();
         foreach ($customers as $customer) {
-            $customerModel = $this->customerModel->load($customer->getId());
-            $customerModel
+            $customer = $this->customer->load($customer->getId());
+            $customer
                 ->setData('socialauth_' . $social . '_id', $socialId)
                 ->setData('socialauth_' . $social . '_token', $socialToken)
                 ->save();
@@ -97,7 +97,7 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $this->searchCriteriaBuilder->addFilter('socialauth_' . $attributeName . '_id', $socialId);
 
-        if ($this->customerModel->getSharingConfig()->isWebsiteScope()) {
+        if ($this->customer->getSharingConfig()->isWebsiteScope()) {
             $this->searchCriteriaBuilder->addFilter(
                 'website_id',
                 $this->storeManager->getStore()->getWebsiteId()
@@ -125,12 +125,13 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
     {
         try {
             $this->searchCriteriaBuilder->addFilter('email', $email);
-            if ($this->customerModel->getSharingConfig()->isWebsiteScope()) {
+            if ($this->customer->getSharingConfig()->isWebsiteScope()) {
                 $this->searchCriteriaBuilder->addFilter(
                     'website_id',
                     $this->storeManager->getStore()->getWebsiteId()
                 );
             }
+
             if ($this->customerSession->isLoggedIn()) {
                 $this->searchCriteriaBuilder->addFilter(
                     'entity_id',
@@ -138,6 +139,7 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
                     'neq'
                 );
             }
+
             return $this->customerRepository->getList($this->searchCriteriaBuilder->create());
         } catch (\Exception $exception) {
             throw new \Exception($exception->getMessage());

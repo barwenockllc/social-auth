@@ -69,7 +69,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @param \Zend\Uri\Uri $zendUri
      * @param \Webkul\SocialSignup\Helper\Data $helperData
      * @param \Magento\Framework\Json\Helper\Data $jsonHelper
-     * @param \Webkul\SocialSignup\Api\Data\LogintypeInterfaceFactory $logintypeFactory
      * @param \Magento\Framework\App\Response\RedirectInterface $redirect
      * @param \Magento\Framework\Serialize\Serializer\Base64Json $base64Json
      */
@@ -81,13 +80,13 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         CookieManagerInterface $cookieManager,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\Json\Helper\Data $jsonHelper,
-        \Webkul\SocialSignup\Api\Data\LogintypeInterfaceFactory $logintypeFactory,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\Controller\ResultFactory $resultFactory,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
-        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
+        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate,
+        \Barwenock\SocialAuth\Service\Authorize\Facebook $facebookService
     ) {
         $this->urlDecoder = $urlDecoder;
         $this->customerSession = $customerSession;
@@ -97,13 +96,13 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->logger = $logger;
         $this->isCheckoutPageReq = 0;
         $this->jsonHelper = $jsonHelper;
-        $this->logintypeFactory = $logintypeFactory;
         $this->request = $request;
         $this->resultFactory = $resultFactory;
         $this->messageManager = $messageManager;
         $this->configHelper = $configHelper;
         $this->socialCustomerHelper = $socialCustomerHelper;
         $this->socialCustomerCreate = $socialCustomerCreate;
+        $this->facebookService = $facebookService;
         $this->isRegistor = false;
     }
 
@@ -121,31 +120,17 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $facebookUser = null;
 
         try {
-            $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
             $facebookAppId = $this->configHelper->getFacebookAppId();
             $facebookAppSecretKey = $this->configHelper->getFacebookAppSecret();
 
             $cookie = $this->getFacebookCookie($facebookAppId, $facebookAppSecretKey);
             if (!empty($cookie['access_token'])) {
-                $appsecretProof= hash_hmac('sha256', $cookie['access_token'], $facebookAppSecretKey);
-                $base_url = 'https://graph.facebook.com/v18.0/me?appsecret_proof=';
-                $token = $base_url . $appsecretProof . '&access_token=' . $cookie['access_token'];
-
-                $facebookParams = [
-                    'debug' => 'all',
-                    'fields' => 'id,name,email,first_name,last_name,locale',
-                    'format' => 'json',
-                    'method' => 'get',
-                    'pretty' => '0',
-                    'suppress_http_code' => '1',
-                ];
-                $queryParams = '&' . http_build_query($facebookParams);
-
-                $facebookUser  = $this->jsonHelper->jsonDecode($this->getFbData($token . $queryParams));
+                $facebookUserUrl = $this->facebookService->buildUserDataUrl($cookie, $facebookAppSecretKey);
+                $facebookUser  = $this->facebookService->getFacebookUserData($facebookUserUrl);
             }
 
             if ($facebookUser != null) {
-                if (isset($facebookUser['email']) && !$facebookUser['email']) {
+                if (!isset($facebookUser['email'])) {
                     if (!$isCheckoutPageReq) {
                         $this->messageManager->addErrorMessage(
                             __(
@@ -169,10 +154,12 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
                         return $resultRedirect->setPath($redirectPath);
                     }
-                    return $resultRedirect->setPath('customer/account/login');
+                    return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)
+                        ->setPath('customer/account/login');
                 }
             } else {
-                return $resultRedirect->setPath('customer/account/login');
+                return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)
+                    ->setPath('customer/account/login');
             }
         } catch (\Exception $e) {
             $this->logger->info('Controller Facebook Login : '.$e->getMessage());
@@ -196,147 +183,13 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         try {
             $cookieData = $this->cookieManager->getCookie('fbsr_' . $appId);
             if ($cookieData != '') {
-                return $this->getNewFacebookCookie($appId, $appSecret);
+                return $this->facebookService->getNewFacebookCookie($appId, $appSecret);
             }
         } catch (\Exception $exception) {
-            $this->logger->info('Controller Facebook getFacebookCookie: ' . $exception->getMessage());
+            throw new \Exception($exception->getMessage());
         }
 
-        return $this->getOldFacebookCookie($appId, $appSecret);
-    }
-
-    /**
-     * Get old facebook cookie
-     *
-     * @param  int    $appId     faceboook id
-     * @param  string $appSecret facebook secret key
-     */
-    private function getOldFacebookCookie($appId, $appSecret)
-    {
-        $args = [];
-        try {
-            $cookieData = $this->cookieManager->getCookie('fbsr_' . $appId);
-
-            // Parse the query string into an array
-            parse_str(trim($cookieData, '\\"'), $args);
-
-            if (isset($args['sig'])) {
-                $signature = $args['sig'];
-                unset($args['sig']); // Remove 'sig' from the array
-
-                // Sort the array by key
-                ksort($args);
-
-                // Recreate the query string without 'sig'
-                $payload = http_build_query($args, null, null, PHP_QUERY_RFC3986);
-
-                // Calculate the encrypted data using the payload and app secret
-                $encryptedData = hash('sha256', $payload . $appSecret);
-
-                // Compare the calculated signature with the one from the cookie
-                if ($encryptedData === $signature) {
-                    return $args;
-                }
-            }
-        } catch (\Exception $e) {
-            $this->logger->info('Controller Facebook getOldFacebookCookie: ' . $e->getMessage());
-        }
-
-        return [];
-    }
-
-    /**
-     * Get new facebook cookie
-     *
-     * @param  int    $appId     faceboook id
-     * @param  string $appSecret facebook secret key
-     */
-    private function getNewFacebookCookie($appId, $appSecret)
-    {
-        $signedRequest = [];
-        try {
-            $cookieData = $this->cookieManager->getCookie('fbsr_' . $appId);
-            $signedRequest = $this->parseSignedRequest($cookieData, $appSecret);
-
-            if (!empty($signedRequest)) {
-                $base = "https://graph.facebook.com/v4.0/oauth/access_token?client_id=$appId";
-                $signedCode = $signedRequest['code'];
-
-                $accessTokenResponse = $this
-                    ->getFbData("$base&redirect_uri=&client_secret=$appSecret&code=$signedCode");
-
-                $response = $this->jsonHelper->jsonDecode($accessTokenResponse, true);
-                if (!empty($response['access_token'])) {
-                    $signedRequest['access_token'] = $response['access_token'];
-                    $signedRequest['expires'] = time() + $response['expires_in'];
-                }
-            }
-        } catch (\Exception $e) {
-            $this->logger->info('Controller Facebook getNewFacebookCookie: ' . $e->getMessage());
-        }
-        return $signedRequest;
-    }
-
-
-    /**
-     * Parse the signed request
-     *
-     * @param  string $signedRequest contain access token & expire date
-     * @param  int   $secret        secret key
-     * @return array
-     */
-    private function parseSignedRequest($signedRequest, $secret)
-    {
-        try {
-            list($encodedSig, $payload) = explode('.', $signedRequest, 2);
-
-            $sig = $this->base64UrlDecode($encodedSig);
-            $data = $this->jsonHelper->jsonDecode($this->base64UrlDecode($payload), true);
-
-            if (strtoupper($data['algorithm']) !== 'HMAC-SHA256') {
-                return null;
-            }
-
-            $expectedSig = hash_hmac('sha256', $payload, $secret, true);
-            if ($sig !== $expectedSig) {
-                return null;
-            }
-            return $data;
-        } catch (\Exception $e) {
-            $this->logger->info('Controller Facebook parseSignedRequest : '.$e->getMessage());
-        }
-    }
-
-    /**
-     * Decode the sign
-     *
-     * @param  string $input
-     */
-    private function base64UrlDecode($input)
-    {
-        try {
-            return $this->urlDecoder->decode(strtr($input, '-_', '+/'));
-        } catch (\Exception $e) {
-            $this->logger->info('Controller Facebook base64UrlDecode : '.$e->getMessage());
-        }
-    }
-
-    /**
-     * Get facebook data
-     *
-     * @param  string $url
-     * @return string
-     */
-    private function getFbData($url)
-    {
-        try {
-            $this->curl->setOption(CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-            $this->curl->get($url);
-
-            return $this->curl->getBody();
-        } catch (\Exception $e) {
-            $this->logger->info('Controller Facebook getFbData : '.$e->getMessage());
-        }
+        return $this->facebookService->getOldFacebookCookie($appId, $appSecret);
     }
 
     /**
@@ -349,7 +202,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     private function callBack($facebookUser, $isCheckoutPageReq)
     {
         try {
-            $session = $this->customerSession;
             if (isset($facebookUser['id']) && $facebookUser['id']) {
                 $customersByFacebookId = $this->socialCustomerHelper
                     ->getCustomersBySocialId($facebookUser['id'], self::CONNECT_TYPE);
@@ -367,7 +219,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         );
                     }
 
-                    $session->loginById($customersByFacebookId->getItems()[0]->getId());
+                    $this->customerSession->loginById($customersByFacebookId->getItems()[0]->getId());
                 } else {
                     $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($facebookUser['email']);
 
@@ -411,7 +263,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                             );
                         }
 
-                        $session->loginById($customersByEmail->getItems()[0]->getId());
+                        $this->customerSession->loginById($customersByEmail->getItems()[0]->getId());
                     } else {
                         $this->socialCustomerCreate->create(
                             $facebookUser['email'],

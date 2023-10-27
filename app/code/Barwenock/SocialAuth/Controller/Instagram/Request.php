@@ -10,9 +10,9 @@ class Request implements \Magento\Framework\App\ActionInterface
     protected $session;
 
     /**
-     * @var \Barwenock\SocialAuth\Controller\Instagram\InstagramClient
+     * @var \Barwenock\SocialAuth\Service\Authorize\Instagram
      */
-    protected $instagramClient;
+    protected $instagramService;
 
     /**
      * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
@@ -41,7 +41,7 @@ class Request implements \Magento\Framework\App\ActionInterface
 
     /**
      * @param \Magento\Framework\Session\Generic $session
-     * @param \Barwenock\SocialAuth\Controller\Instagram\InstagramClient $instagramClient
+     * @param \Barwenock\SocialAuth\Service\Authorize\Instagram $instagramService
      * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\Controller\ResultFactory $resultFactory
@@ -50,7 +50,7 @@ class Request implements \Magento\Framework\App\ActionInterface
      */
     public function __construct(
         \Magento\Framework\Session\Generic $session,
-        \Barwenock\SocialAuth\Controller\Instagram\InstagramClient $instagramClient,
+        \Barwenock\SocialAuth\Service\Authorize\Instagram $instagramService,
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\Controller\ResultFactory $resultFactory,
@@ -59,7 +59,7 @@ class Request implements \Magento\Framework\App\ActionInterface
     ) {
 
         $this->session = $session;
-        $this->instagramClient = $instagramClient;
+        $this->instagramService = $instagramService;
         $this->configHelper = $configHelper;
         $this->request = $request;
         $this->resultFactory = $resultFactory;
@@ -70,7 +70,7 @@ class Request implements \Magento\Framework\App\ActionInterface
     public function execute()
     {
         $this->session->unsIsSocialSignupCheckoutPageReq();
-        $this->instagramClient->setParameters();
+        $this->instagramService->setParameters();
 
         if (!$this->configHelper->getInstagramStatus()) {
             return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
@@ -79,7 +79,7 @@ class Request implements \Magento\Framework\App\ActionInterface
         // CSRF protection
         $csrf = hash('sha256', uniqid(rand(), true));
         $this->session->setInstagramCsrf($csrf);
-        $this->instagramClient->setState($csrf);
+        $this->instagramService->setState($csrf);
 
         $post = $this->request->getParams();
         $mainwProtocol = $this->request->getParam('mainw_protocol');
@@ -91,6 +91,6 @@ class Request implements \Magento\Framework\App\ActionInterface
 
         $this->session->setIsSecure($mainwProtocol);
         return $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT)
-            ->setPath($this->instagramClient->createRequestUrl());
+            ->setPath($this->instagramService->createRequestUrl());
     }
 }

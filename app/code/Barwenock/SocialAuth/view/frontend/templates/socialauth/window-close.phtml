@@ -1,0 +1,10 @@
+<?php
+/**
+ * @var $block \Barwenock\SocialAuth\Block\SocialAuth\Redirect
+ * @var $escaper \Magento\Framework\Escaper
+ */
+?>
+<script type='text/javascript'>
+    window.opener.location.replace('<?= $escaper->escapeUrl($block->getRedirectLink()); ?>');
+    window.close();
+</script>

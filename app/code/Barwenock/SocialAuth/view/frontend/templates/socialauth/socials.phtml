@@ -5,7 +5,7 @@
  */
 ?>
 <?php if ($block->displaySocialsOn()) : ?>
-<div class="wk_socialsignup_container">
+<div class="socialauth_container">
     <?php if ($block->isAnySocialEnabled()) : ?>
         <div class="wk_social_choice">
             <h3>
@@ -24,7 +24,7 @@
         <?php endif ?>
 
         <?php if ($block->configHelper->getTwitterStatus() == 1) : ?>
-            <div  id="twitterlogin" class="twitterlogin wksocialsignup">
+            <div  id="twitter" class="twitter wksocialsignup">
                 <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('twitter'))?>"
                      alt="<?= $escaper->escapeHtml(__('Twitter'))?>"
                      title="<?= $escaper->escapeHtml(__('Connect with Twitter'))?>" />
@@ -32,7 +32,7 @@
         <?php endif; ?>
 
         <?php if ($block->configHelper->getGoogleStatus() == 1) : ?>
-            <div id="googlelogin" class="googlelogin wksocialsignup">
+            <div id="google" class="google wksocialsignup">
                 <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('google'))?>"
                      alt="<?= $escaper->escapeHtml(__('Google')) ?>"
                      title="<?= $escaper->escapeHtml(__('Connect with Google')) ?>">
@@ -40,7 +40,7 @@
         <?php endif; ?>
 
         <?php if ($block->configHelper->getLinkedinStatus() == 1) : ?>
-            <div  id="linkedinlogin" class="linkedinlogin wksocialsignup">
+            <div  id="linkedin" class="linkedin wksocialsignup">
                 <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('linkedin'))?>"
                      alt="<?= $escaper->escapeHtml(__('LinkedIn'))?>"
                      title="<?= $escaper->escapeHtml(__('Connect with LinkedIn'))?>" />
@@ -48,7 +48,7 @@
         <?php endif; ?>
 
         <?php if ($block->configHelper->getInstagramStatus() == 1) : ?>
-            <div  id="instagramlogin" class="instagramlogin wksocialsignup">
+            <div  id="instagram" class="instagram wksocialsignup">
                 <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('instagram'))?>"
                      alt="<?= $escaper->escapeHtml(__('Instagram'))?>"
                      title="<?= $escaper->escapeHtml(__('Connect with Instagram'))?>" />
@@ -62,7 +62,7 @@
     {
         "*":{
             "fbBlockPlugin":<?= /* @noEscape */ $block->getFacebookBlockData(); ?>,
-            "popupPlugin":<?= /* @noEscape */ $block->getPopupData(); ?>
+            "socialLoginPopup":<?= /* @noEscape */ $block->getPopupData(); ?>
     }
 }
 </script>

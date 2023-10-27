@@ -10,8 +10,6 @@ use Magento\Framework\Session\Generic;
 use Magento\Store\Model\Store;
 use Magento\Framework\Url;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute;
-use \Barwenock\SocialAuth\Helper\Authorize\Linkedin;
-use Magento\Framework\Exception\LocalizedException;
 
 class Connect extends Action
 {
@@ -47,7 +45,7 @@ class Connect extends Action
      * @param Store $store
      * @param \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper
      * @param Attribute $eavAttribute
-     * @param LinkedinClient $linkedinClient
+     * @param \Barwenock\SocialAuth\Service\Authorize\Linkedin $linkedinService
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
@@ -60,7 +58,7 @@ class Connect extends Action
         Store $store,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
         \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
-        LinkedinClient $linkedinClient,
+        \Barwenock\SocialAuth\Service\Authorize\Linkedin $linkedinService,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\Session\SessionManagerInterface $coreSession,
@@ -68,7 +66,8 @@ class Connect extends Action
         PageFactory $resultPageFactory,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\UrlInterface $url,
-        \Barwenock\SocialAuth\Model\Customer\Create $customerCreate
+        \Barwenock\SocialAuth\Model\Customer\Create $customerCreate,
+        \Magento\Framework\App\Response\Http $redirect
     ) {
         $this->isRegistor = true;
         $this->customerSession = $customerSession;
@@ -79,11 +78,12 @@ class Connect extends Action
         $this->session = $session;
         $this->helper = $helper;
         $this->coreSession = $coreSession;
-        $this->linkedinClient = $linkedinClient;
+        $this->linkedinService = $linkedinService;
         $this->_resultPageFactory = $resultPageFactory;
         $this->request = $request;
         $this->url = $url;
         $this->customerCreate = $customerCreate;
+        $this->redirect = $redirect;
         parent::__construct($context);
     }
 
@@ -93,39 +93,28 @@ class Connect extends Action
     public function execute()
     {
         try {
-            $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
-            $this->linkedinClient->setParameters();
+            $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
             $isSecure = $this->store->isCurrentlySecure();
-            $redirectPath = $this->linkedinConnect();
-            if ($redirectPath) {
-                $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
-                return $resultRedirect->setPath($redirectPath);
-            }
+
+            $this->linkedinService->setParameters();
+            $this->linkedinConnect();
         } catch (\Exception $e) {
             if (!$isCheckoutPageReq) {
                 $this->messageManager->addErrorMessage($e->getMessage());
             } else {
-                $this->coreSession->setErrorMsg(
-                    $e->getMessage()
-                );
+                $this->coreSession->setErrorMsg($e->getMessage());
             }
         }
 
         if (!empty($this->referer)) {
-            if (empty($this->flag)) {
-                $redirectUrl = $this->_url->getUrl('socialsignup/google/redirect/');
-                if (!$isSecure) {
-                    $redirectUrl = str_replace("https://", "http://", $redirectUrl);
-                }
-                $this->coreSession->start();
-                $this->coreSession->setIsRegistor($this->isRegistor);
-                $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
-                return $resultRedirect->setPath($redirectUrl);
-            } else {
-                $this->helper->closeWindow($this);
+            $redirectUrl = $this->_url->getUrl('socialauth/authorize/redirect/');
+            if (!$isSecure) {
+                $redirectUrl = str_replace("https://", "http://", $redirectUrl);
             }
+
+            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath($redirectUrl);
         } else {
-            $this->helper->redirect404($this);
+            return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
         }
     }
 
@@ -154,8 +143,8 @@ class Connect extends Action
                 }
             }
 
-            $userInfo = $this->linkedinClient->api('/v2/userinfo');
-            $token = $this->linkedinClient->getAccessToken();
+            $userInfo = $this->linkedinService->api('/v2/userinfo');
+            $token = $this->linkedinService->getAccessToken();
 
             $customersByLinkedinId = $this->socialCustomerHelper
                 ->getCustomersBySocialId($userInfo->sub, self::CONNECT_TYPE);
@@ -250,7 +239,7 @@ class Connect extends Action
             if ($errorCode === 'access_denied') {
                 unset($this->referer);
                 $this->flag = "noaccess";
-                $this->helper->closeWindow($this);
+                return false;
             }
             return false;
         }

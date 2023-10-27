@@ -63,7 +63,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
      * @param Store $store
      * @param \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper
      * @param Attribute $eavAttribute
-     * @param GoogleClient $googleClient
+     * @param \Barwenock\SocialAuth\Service\Authorize\Google $googleService
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
      * @param \Magento\Customer\Model\Session $customerSession
@@ -76,7 +76,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
         Store $store,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
         Attribute $eavAttribute,
-        \Barwenock\SocialAuth\Controller\Google\GoogleClient $googleClient,
+        \Barwenock\SocialAuth\Service\Authorize\Google $googleService,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Session\SessionManagerInterface $coreSession,
         \Magento\Customer\Model\Session $customerSession,
@@ -98,7 +98,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
         $this->_scopeConfig = $scopeConfig;
         $this->session = $session;
         $this->coreSession = $coreSession;
-        $this->googleClient = $googleClient;
+        $this->googleService = $googleService;
         $this->resultPageFactory = $resultPageFactory;
         $this->resultFactory = $resultFactory;
         $this->messageManager = $massageManager;
@@ -111,35 +111,32 @@ class Connect implements \Magento\Framework\App\ActionInterface
 
     public function execute()
     {
-        $this->googleClient->setParameters();
+        $this->googleService->setParameters();
         $this->cacheManagment->cleanCache();
 
         try {
             $isSecure = $this->store->isCurrentlySecure();
             $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
 
-            $redirectPath = $this->googleConnect();
-            if ($redirectPath) {
-                return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath($redirectPath);
-            }
+            $this->googleConnect();
         } catch (\Exception $e) {
-            $message = $isCheckoutPageReq ? 'errorMsg' : 'addError';
-            $this->messageManager->$message($e->getMessage());
+            if (!$isCheckoutPageReq) {
+                $this->messageManager->addErrorMessage($e->getMessage());
+            } else {
+                $this->coreSession->setErrorMsg($e->getMessage());
+            }
         }
 
-        if (!empty($this->referer) && empty($this->flag)) {
-            $redirectUrl = $this->url->getUrl('socialsignup/google/redirect/');
+        if (!empty($this->referer)) {
+            $redirectUrl = $this->url->getUrl('socialauth/authorize/redirect/');
             if (!$isSecure) {
                 $redirectUrl = str_replace("https://", "http://", $redirectUrl);
             }
-            $this->coreSession->start();
-            $this->coreSession->setIsRegistor($this->isRegistor);
 
-            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)
-                ->setPath($redirectUrl);
+            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath($redirectUrl);
+        } else {
+            return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
         }
-
-        return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
     }
 
     /**
@@ -166,8 +163,8 @@ class Connect implements \Magento\Framework\App\ActionInterface
             }
         }
 
-            $userInfo = $this->googleClient->api('/userinfo');
-            $token = $this->googleClient->getAccessToken();
+            $userInfo = $this->googleService->api('/userinfo');
+            $token = $this->googleService->getAccessToken();
 
             $customersByGoogleId = $this->socialCustomerHelper
                 ->getCustomersBySocialId($userInfo->id, self::CONNECT_TYPE);
@@ -278,7 +275,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
             if ($errorCode === 'access_denied') {
                 unset($this->referer);
                 $this->flag = "noaccess";
-                $this->helper->closeWindow($this);
+                return false;
             }
             return false;
         }

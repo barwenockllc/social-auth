@@ -1,8 +1,8 @@
 <?php
 
-namespace Barwenock\SocialAuth\Controller\Google;
+namespace Barwenock\SocialAuth\Service\Authorize;
 
-class GoogleClient
+class Google
 {
     protected const REDIRECT_URI_ROUTE = 'socialauth/google/connect';
     protected const OAUTH2_TOKEN_URI = 'https://accounts.google.com/o/oauth2/token';

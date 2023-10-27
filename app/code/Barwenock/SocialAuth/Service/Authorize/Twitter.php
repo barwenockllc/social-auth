@@ -33,8 +33,7 @@ class Twitter
     public function __construct(
         \Magento\Framework\Url $url,
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
-        \Magento\Framework\HTTP\Client\Curl $curl,
-        \Magento\Store\Model\Store $store
+        \Magento\Framework\HTTP\Client\Curl $curl
     ) {
         $this->url = $url;
         $this->configHelper = $configHelper;

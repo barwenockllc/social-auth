@@ -10,9 +10,9 @@ class Request implements \Magento\Framework\App\ActionInterface
     protected $session;
 
     /**
-     * @var \Barwenock\SocialAuth\Controller\Google\GoogleClient
+     * @var \Barwenock\SocialAuth\Service\Authorize\Google
      */
-    protected $googleClient;
+    protected $googleService;
 
     /**
      * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
@@ -41,7 +41,7 @@ class Request implements \Magento\Framework\App\ActionInterface
 
     /**
      * @param \Magento\Framework\Session\Generic $session
-     * @param \Barwenock\SocialAuth\Controller\Google\GoogleClient $googleClient
+     * @param \Barwenock\SocialAuth\Service\Authorize\Google $googleClient
      * @param \Webkul\SocialSignup\Helper\Data $helper
      * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
      * @param \Magento\Framework\App\RequestInterface $request
@@ -51,7 +51,7 @@ class Request implements \Magento\Framework\App\ActionInterface
      */
     public function __construct(
         \Magento\Framework\Session\Generic $session,
-        \Barwenock\SocialAuth\Controller\Google\GoogleClient $googleClient,
+        \Barwenock\SocialAuth\Service\Authorize\Google $googleService,
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\Controller\ResultFactory $resultFactory,
@@ -59,7 +59,7 @@ class Request implements \Magento\Framework\App\ActionInterface
         \Magento\Framework\UrlInterface $url,
     ) {
         $this->session = $session;
-        $this->googleClient = $googleClient;
+        $this->googleService = $googleService;
         $this->configHelper = $configHelper;
         $this->request = $request;
         $this->resultFactory = $resultFactory;
@@ -73,7 +73,7 @@ class Request implements \Magento\Framework\App\ActionInterface
     public function execute()
     {
         $this->session->unsIsSocialSignupCheckoutPageReq();
-        $this->googleClient->setParameters();
+        $this->googleService->setParameters();
 
         if (!$this->configHelper->getGoogleStatus()) {
             return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
@@ -81,7 +81,7 @@ class Request implements \Magento\Framework\App\ActionInterface
 
         $csrf = hash('sha256', uniqid(rand(), true));
         $this->session->setGoogleCsrf($csrf);
-        $this->googleClient->setState($csrf);
+        $this->googleService->setState($csrf);
 
         $post = $this->request->getParams();
         $mainwProtocol = $this->request->getParam('mainw_protocol');
@@ -93,6 +93,6 @@ class Request implements \Magento\Framework\App\ActionInterface
         $this->session->setIsSecure($mainwProtocol);
 
         return $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT)
-            ->setPath($this->googleClient->createRequestUrl());
+            ->setPath($this->googleService->createRequestUrl());
     }
 }
