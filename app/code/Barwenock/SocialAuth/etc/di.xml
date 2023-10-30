@@ -5,6 +5,11 @@
     <preference for="\Barwenock\SocialAuth\Api\LoginTypeRepositoryInterface"
                 type="\Barwenock\SocialAuth\Model\LoginTypeRepository"/>
 
+    <type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
+        <plugin name="enter_shipping_details" type="\Barwenock\SocialAuth\Plugin\Checkout\Model\CheckoutLayout"
+                sortOrder="100"/>
+    </type>
+
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\Reporting">
         <plugin name="customer_grid_collection" type="\Barwenock\SocialAuth\Model\Plugin\ResourceModel\Customer\Grid"/>
     </type>

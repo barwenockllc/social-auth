@@ -4,7 +4,12 @@
  * @var $escaper \Magento\Framework\Escaper
  */
 ?>
+<?php $redirect = $block->getRedirectLink(); ?>
 <script type='text/javascript'>
+    <?php if ($redirect === 'reload'): ?>
+    window.opener.location.reload(true);
+    <?php else: ?>
     window.opener.location.replace('<?= $escaper->escapeUrl($block->getRedirectLink()); ?>');
+    <?php endif; ?>
     window.close();
 </script>

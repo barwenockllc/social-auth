@@ -2,53 +2,98 @@
 
 namespace Barwenock\SocialAuth\Controller\Twitter;
 
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\View\Result\PageFactory;
-use Magento\Store\Model\Store;
-use Magento\Framework\Url;
-use Magento\Eav\Model\ResourceModel\Entity\Attribute;
-use Magento\Framework\Exception\LocalizedException;
-
-class Connect extends Action
+class Connect implements \Magento\Framework\App\ActionInterface
 {
+    /**
+     * Connect social media type
+     */
     protected const CONNECT_TYPE = 'twitter';
 
-    /**
-     * @var isRegistor
-     */
-    protected $isRegistor = true;
-
-    /**
-     * @var PageFactory
-     */
-    protected $_resultPageFactory;
-
-    /**
-     * @var Store
-     */
-    protected $store;
-
-    /**
-     * @var Url
-     */
-    protected $_url;
+    protected $isRegistor;
 
     /**
      * @var \Magento\Customer\Model\Session
      */
-    protected $_customerSession;
+    protected $customerSession;
+
+    /**
+     * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute
+     */
+    protected $eavAttribute;
+
+    /**
+     * @var \Magento\Store\Model\Store
+     */
+    protected $store;
+
+    /**
+     * @var \Magento\Framework\Session\SessionManagerInterface
+     */
+    protected $coreSession;
+
+    /**
+     * @var \Barwenock\SocialAuth\Service\Authorize\Twitter
+     */
+    protected $twitterService;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\CacheManagement
+     */
+    protected $cacheManagement;
 
     /**
      * @var \Magento\Framework\App\RequestInterface
      */
     protected $request;
 
+    /**
+     * @var \Magento\Framework\Url
+     */
+    protected $url;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer
+     */
+    protected $socialCustomerHelper;
+
+    /**
+     * @var \Barwenock\SocialAuth\Model\Customer\Create
+     */
+    protected $socialCustomerCreate;
+
+    /**
+     * @var \Magento\Framework\App\Response\Http
+     */
+    protected $redirect;
+
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
+    protected $messageManager;
+
+    /**
+     * @var \Magento\Framework\Controller\ResultFactory
+     */
+    protected $resultFactory;
+
+    /**
+     * @param \Magento\Store\Model\Store $store
+     * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute
+     * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
+     * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param \Barwenock\SocialAuth\Helper\CacheManagement $cacheManagement
+     * @param \Magento\Framework\App\Response\Http $redirect
+     * @param \Magento\Framework\UrlInterface $url
+     * @param \Barwenock\SocialAuth\Service\Authorize\Twitter $twitterService
+     * @param \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper
+     * @param \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
+     * @param \Magento\Framework\Message\ManagerInterface $messageManager
+     * @param \Magento\Framework\Controller\ResultFactory $resultFactory
+     */
     public function __construct(
-        Context $context,
-        Store $store,
-        Attribute $eavAttribute,
+        \Magento\Store\Model\Store $store,
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
         \Magento\Framework\Session\SessionManagerInterface $coreSession,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\App\RequestInterface $request,
@@ -57,7 +102,9 @@ class Connect extends Action
         \Magento\Framework\UrlInterface $url,
         \Barwenock\SocialAuth\Service\Authorize\Twitter $twitterService,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
-        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
+        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate,
+        \Magento\Framework\Message\ManagerInterface $messageManager,
+        \Magento\Framework\Controller\ResultFactory $resultFactory
     ) {
         $this->customerSession = $customerSession;
         $this->eavAttribute = $eavAttribute;
@@ -70,18 +117,16 @@ class Connect extends Action
         $this->twitterService = $twitterService;
         $this->socialCustomerHelper = $socialCustomerHelper;
         $this->socialCustomerCreate = $socialCustomerCreate;
-        parent::__construct($context);
+        $this->messageManager = $messageManager;
+        $this->resultFactory = $resultFactory;
     }
 
-    /**
-     * Login customer
-     */
     public function execute()
     {
         $this->cacheManagement->cleanCache();
 
         try {
-            $isCheckoutPageReq = $this->coreSession->getCoreSession()->getIsSocialSignupCheckoutPageReq();
+            $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
             $isSecure = $this->store->isCurrentlySecure();
             $this->twitterConnect();
         } catch (\Exception $e) {
@@ -92,20 +137,25 @@ class Connect extends Action
             }
         }
 
-        if (!empty($this->referer)) {
-            $redirectUrl = $this->_url->getUrl('socialauth/authorize/redirect/');
-            if (!$isSecure) {
-                $redirectUrl = str_replace("https://", "http://", $redirectUrl);
-            }
+        $redirectUrl = $this->url->getUrl('socialauth/authorize/redirect/');
 
-            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath($redirectUrl);
-        } else {
-            return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
+        if (empty($this->referer)) {
+            $redirectUrl .= '?' . http_build_query(['noroute' => true]);
         }
+
+        if (!$isSecure) {
+            $redirectUrl = str_replace("https://", "http://", $redirectUrl);
+        }
+
+        return $this->resultFactory->create(
+            \Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT
+        )->setPath($redirectUrl);
     }
 
     /**
-     * Get the infromation from end points
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     protected function twitterConnect()
     {
@@ -151,7 +201,12 @@ class Connect extends Action
 
             if ($customersByEmail->getTotalCount()) {
                 $this->socialCustomerHelper
-                    ->connectBySocialId($customersByEmail, $userInfo['id'], $token['oauth_token'], self::CONNECT_TYPE);
+                    ->connectBySocialId(
+                        $customersByEmail,
+                        $userInfo['id'],
+                        $token['oauth_token'],
+                        self::CONNECT_TYPE
+                    );
 
                 if (!$isCheckoutPageReq) {
                     $this->messageManager->addSuccessMessage(
@@ -172,7 +227,7 @@ class Connect extends Action
             }
 
             if (empty($userInfo['name'])) {
-                throw new LocalizedException(
+                throw new \Magento\Framework\Exception\LocalizedException(
                     __('Sorry, could not retrieve your %1 last name. Please try again.', __('Twitter'))
                 );
             }
@@ -251,16 +306,20 @@ class Connect extends Action
         return false;
     }
 
+    /**
+     * @param $requestToken
+     * @return bool
+     */
     protected function isRequestValid($requestToken)
     {
-        $params = $this->getRequest()->getParams();
+        $params = $this->request->getParams();
 
         if (empty($params) || empty($requestToken)) {
             // Direct route access - deny
             return false;
         }
 
-        $this->referer = $this->_url->getCurrentUrl();
+        $this->referer = $this->url->getCurrentUrl();
 
         if (isset($params['denied'])) {
             unset($this->referer);
@@ -272,12 +331,11 @@ class Connect extends Action
     }
 
     /**
-     * Connect with logged in customer
-     *
-     * @param object $customersByTwitterId
-     * @param array  $userInfo
-     * @param int    $token
+     * @param $customersByTwitterId
+     * @param $userInfo
+     * @param $token
      * @return void
+     * @throws \Exception
      */
     private function connectExistingAccount($customersByTwitterId, $userInfo, $token)
     {

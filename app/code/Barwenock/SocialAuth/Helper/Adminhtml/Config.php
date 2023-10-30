@@ -29,14 +29,52 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         parent::__construct($context);
     }
 
-    public function getFacebookStatus()
+    /**
+     * @return int
+     */
+    public function getModuleStatus()
     {
         return $this->scopeConfig->getValue(
-            'socialauth/facebook_config/status',
+            'socialauth/socialauth/status',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
     }
 
+    public function getSocialDisplayOn()
+    {
+        return $this->scopeConfig->getValue(
+            'socialauth/socialauth/display_on',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    public function getSubscriptionStatus()
+    {
+        return $this->scopeConfig->getValue(
+            'socialauth/socialauth/subscription',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    public function getAuthorizationRedirect()
+    {
+        return $this->scopeConfig->getValue(
+            'socialauth/socialauth/authorization_redirect',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    public function getAuthorizeRedirectUrl()
+    {
+        return $this->scopeConfig->getValue(
+            'socialauth/socialauth/authorize_redirect_url',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
+     * @return int
+     */
     public function getGoogleStatus()
     {
         return $this->scopeConfig->getValue(
@@ -45,6 +83,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * @return int
+     */
     public function getLinkedinStatus()
     {
         return $this->scopeConfig->getValue(
@@ -53,6 +94,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * @return int
+     */
     public function getInstagramStatus()
     {
         return $this->scopeConfig->getValue(
@@ -81,6 +125,17 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $configPath = "socialauth/{$type}_config/icon_login";
         return $this->scopeConfig->getValue($configPath, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+    }
+
+    /**
+     * @return int
+     */
+    public function getFacebookStatus()
+    {
+        return $this->scopeConfig->getValue(
+            'socialauth/facebook_config/status',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
     }
 
     public function getFacebookAppId()
@@ -115,14 +170,6 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         ));
     }
 
-    public function getSubscriptionStatus()
-    {
-        return $this->scopeConfig->getValue(
-            'socialauth/socialauth/subscription',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
-    }
-
     public function getLinkedinClientId()
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
@@ -139,6 +186,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         ));
     }
 
+    /**
+     * @return int
+     */
     public function getTwitterStatus()
     {
         return $this->scopeConfig->getValue(

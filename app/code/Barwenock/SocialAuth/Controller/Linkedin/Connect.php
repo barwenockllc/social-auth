@@ -2,94 +2,120 @@
 
 namespace Barwenock\SocialAuth\Controller\Linkedin;
 
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\View\Result\PageFactory;
-use Magento\Framework\Session\Generic;
-use Magento\Store\Model\Store;
-use Magento\Framework\Url;
-use Magento\Eav\Model\ResourceModel\Entity\Attribute;
-
-class Connect extends Action
+class Connect implements \Magento\Framework\App\ActionInterface
 {
+    /**
+     * Connect social media type
+     */
     protected const CONNECT_TYPE = 'linkedin';
-     /**
-      * @var isRegistor
-      */
+
     protected $isRegistor;
 
     /**
-     * @var PageFactory
+     * @var \Magento\Customer\Model\Session
      */
-    protected $_resultPageFactory;
+    protected $customerSession;
+
+    /**
+     * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute
+     */
+    protected $eavAttribute;
+
+    /**
+     * @var \Magento\Store\Model\Store
+     */
+    protected $store;
+
+    /**
+     * @var \Magento\Framework\Session\SessionManagerInterface
+     */
+    protected $coreSession;
+
+    /**
+     * @var \Magento\Framework\Session\Generic
+     */
+    protected $session;
+
+    /**
+     * @var \Barwenock\SocialAuth\Service\Authorize\Linkedin
+     */
+    protected $linkedinService;
+
+    /**
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $request;
+
+    /**
+     * @var \Magento\Framework\Url
+     */
+    protected $url;
+
     /**
      * @var \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer
      */
     protected $socialCustomerHelper;
+
     /**
-     * @var eavAttribute
+     * @var \Barwenock\SocialAuth\Model\Customer\Create
      */
-    protected $_eavAttribute;
+    protected $socialCustomerCreate;
+
     /**
-     * @var store
+     * @var \Magento\Framework\App\Response\Http
      */
-    protected $_store;
+    protected $redirect;
+
     /**
-     * @var scopeConfig
+     * @var \Magento\Framework\Message\ManagerInterface
      */
-    protected $_scopeConfig;
+    protected $messageManager;
+
     /**
-     * @param Generic $session
-     * @param Context $context
-     * @param Store $store
+     * @var \Magento\Framework\Controller\ResultFactory
+     */
+    protected $resultFactory;
+
+    /**
+     * @param \Magento\Store\Model\Store $store
      * @param \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper
-     * @param Attribute $eavAttribute
+     * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute
      * @param \Barwenock\SocialAuth\Service\Authorize\Linkedin $linkedinService
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
-     * @param \Webkul\SocialSignup\Helper\Data $helper
-     * @param PageFactory $resultPageFactory
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param \Magento\Framework\UrlInterface $url
+     * @param \Barwenock\SocialAuth\Model\Customer\Create $customerCreate
+     * @param \Magento\Framework\Message\ManagerInterface $messageManager
+     * @param \Magento\Framework\Controller\ResultFactory $resultFactory
      */
     public function __construct(
-        Generic $session,
-        Context $context,
-        Store $store,
+        \Magento\Store\Model\Store $store,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
         \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
         \Barwenock\SocialAuth\Service\Authorize\Linkedin $linkedinService,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\Session\SessionManagerInterface $coreSession,
-        \Webkul\SocialSignup\Helper\Data $helper,
-        PageFactory $resultPageFactory,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\UrlInterface $url,
-        \Barwenock\SocialAuth\Model\Customer\Create $customerCreate,
-        \Magento\Framework\App\Response\Http $redirect
+        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate,
+        \Magento\Framework\Message\ManagerInterface $messageManager,
+        \Magento\Framework\Controller\ResultFactory $resultFactory
     ) {
         $this->isRegistor = true;
         $this->customerSession = $customerSession;
         $this->socialCustomerHelper = $socialCustomerHelper;
         $this->eavAttribute = $eavAttribute;
         $this->store = $store;
-        $this->_scopeConfig = $scopeConfig;
-        $this->session = $session;
-        $this->helper = $helper;
         $this->coreSession = $coreSession;
         $this->linkedinService = $linkedinService;
-        $this->_resultPageFactory = $resultPageFactory;
         $this->request = $request;
         $this->url = $url;
-        $this->customerCreate = $customerCreate;
-        $this->redirect = $redirect;
-        parent::__construct($context);
+        $this->socialCustomerCreate = $socialCustomerCreate;
+        $this->messageManager = $messageManager;
+        $this->resultFactory = $resultFactory;
     }
 
-    /**
-     * Execute function
-     */
     public function execute()
     {
         try {
@@ -106,24 +132,29 @@ class Connect extends Action
             }
         }
 
-        if (!empty($this->referer)) {
-            $redirectUrl = $this->_url->getUrl('socialauth/authorize/redirect/');
-            if (!$isSecure) {
-                $redirectUrl = str_replace("https://", "http://", $redirectUrl);
-            }
+        $redirectUrl = $this->url->getUrl('socialauth/authorize/redirect/');
 
-            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath($redirectUrl);
-        } else {
-            return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
+        if (empty($this->referer)) {
+            $redirectUrl .= '?' . http_build_query(['noroute' => true]);
         }
+
+        if (!$isSecure) {
+            $redirectUrl = str_replace("https://", "http://", $redirectUrl);
+        }
+
+        return $this->resultFactory->create(
+            \Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT
+        )->setPath($redirectUrl);
     }
 
     /**
-     * Check customer is exist or not
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     protected function linkedinConnect()
     {
-        $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
+        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
         $errorCode = $this->request->getParam('error');
         $code = $this->request->getParam('code');
         $state = $this->request->getParam('state');
@@ -194,7 +225,7 @@ class Connect extends Action
             $customerCountByEmail = $customersByEmail->getTotalCount();
 
             if (!$customerCountByLinkedinId && !$customerCountByEmail) {
-                    $this->customerCreate->create(
+                    $this->socialCustomerCreate->create(
                         $userInfo->email,
                         $userInfo->given_name,
                         $userInfo->family_name,
@@ -226,6 +257,12 @@ class Connect extends Action
         }
     }
 
+    /**
+     * @param $errorCode
+     * @param $code
+     * @param $state
+     * @return bool
+     */
     protected function isRequestValid($errorCode, $code, $state)
     {
         if (!($errorCode || $code) && !$state) {
@@ -248,15 +285,15 @@ class Connect extends Action
     }
 
     /**
-     * Connection message
-     *
-     * @param object $customersByLinkedinId get customer by linkedin id
-     * @param object  $userInfo              user information
-     * @param string $token                 user token
+     * @param $customersByLinkedinId
+     * @param $userInfo
+     * @param $token
+     * @return void
+     * @throws \Exception
      */
     private function connectExistingAccount($customersByLinkedinId, $userInfo, $token)
     {
-        $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
+        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
         if ($this->customerSession->isLoggedIn()) {
             if ($customersByLinkedinId->getTotalCount()) {
                 if (!$isCheckoutPageReq) {
@@ -300,8 +337,6 @@ class Connect extends Action
                     )
                 );
             }
-
-            return;
         }
     }
 
@@ -313,10 +348,10 @@ class Connect extends Action
     protected function checkAccountByLinkedinId($customersByLinkedinId)
     {
         $isCheckoutPageReq = 0;
-        $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
+        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
         if ($customersByLinkedinId->getTotalCount()) {
             $this->isRegistor = false;
-            // Existing connected user - login
+
             foreach ($customersByLinkedinId->getItems() as $customerInfo) {
                 $customer = $customerInfo;
             }

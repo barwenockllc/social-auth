@@ -2,114 +2,141 @@
 
 namespace Barwenock\SocialAuth\Controller\Instagram;
 
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\View\Result\PageFactory;
-use Magento\Framework\Session\Generic;
-use Magento\Store\Model\Store;
-use Magento\Framework\Url;
-use Magento\Eav\Model\ResourceModel\Entity\Attribute;
-use Magento\Framework\Exception\LocalizedException;
-
-/**
- * Connect class of instagram
- */
-class Connect extends Action
+class Connect implements \Magento\Framework\App\ActionInterface
 {
+    /**
+     * Connect social media type
+     */
     protected const CONNECT_TYPE = 'instagram';
 
-    /**
-     * @var isRegistor
-     */
     protected $isRegistor;
 
     /**
-     * @var PageFactory
+     * @var \Magento\Customer\Model\Session
      */
-    protected $_resultPageFactory;
+    protected $customerSession;
 
     /**
-     * @var eavAttribute
+     * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute
      */
     protected $eavAttribute;
 
     /**
-     * @var store
+     * @var \Magento\Store\Model\Store
      */
-    protected $_store;
+    protected $store;
 
     /**
-     * @var scopeConfig
+     * @var \Magento\Framework\Session\SessionManagerInterface
      */
-    protected $_scopeConfig;
+    protected $coreSession;
 
     /**
-     * @var Webkul\SocialSignup\Helper\Data
+     * @var \Magento\Framework\Session\Generic
      */
-    protected $helper;
+    protected $session;
 
     /**
-     * Construct intialization
-     *
-     * @param Generic $session
-     * @param Context $context
-     * @param Store $store
-     * @param Attribute $eavAttribute
-     * @param \Barwenock\SocialAuth\Service\Authorize\Instagram $instagramClient
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @var \Barwenock\SocialAuth\Service\Authorize\Instagram
+     */
+    protected $instagramService;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\CacheManagement
+     */
+    protected $cacheManagement;
+
+    /**
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $request;
+
+    /**
+     * @var \Magento\Framework\Url
+     */
+    protected $url;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer
+     */
+    protected $socialCustomerHelper;
+
+    /**
+     * @var \Barwenock\SocialAuth\Model\Customer\Create
+     */
+    protected $socialCustomerCreate;
+
+    /**
+     * @var \Magento\Framework\App\Response\Http
+     */
+    protected $redirect;
+
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
+    protected $messageManager;
+
+    /**
+     * @var \Magento\Framework\Controller\ResultFactory
+     */
+    protected $resultFactory;
+
+    /**
+     * @param \Magento\Framework\Session\Generic $session
+     * @param \Magento\Store\Model\Store $store
+     * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute
+     * @param \Barwenock\SocialAuth\Service\Authorize\Instagram $instagramService
      * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
      * @param \Magento\Customer\Model\Session $customerSession
-     * @param \Webkul\SocialSignup\Helper\Data $helper
-     * @param PageFactory $resultPageFactory
+     * @param \Barwenock\SocialAuth\Helper\CacheManagement $cacheManagement
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param \Magento\Framework\Url $url
+     * @param \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper
+     * @param \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
+     * @param \Magento\Framework\App\Response\Http $redirect
+     * @param \Magento\Framework\Message\ManagerInterface $messageManager
+     * @param \Magento\Framework\Controller\ResultFactory $resultFactory
      */
     public function __construct(
-        Generic $session,
-        Context $context,
-        Store $store,
-        Attribute $eavAttribute,
+        \Magento\Framework\Session\Generic $session,
+        \Magento\Store\Model\Store $store,
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
         \Barwenock\SocialAuth\Service\Authorize\Instagram $instagramService,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Session\SessionManagerInterface $coreSession,
         \Magento\Customer\Model\Session $customerSession,
-        \Webkul\SocialSignup\Helper\Data $helper,
-        PageFactory $resultPageFactory,
         \Barwenock\SocialAuth\Helper\CacheManagement $cacheManagement,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\Url $url,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
         \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate,
-        \Magento\Framework\App\Response\Http $redirect
+        \Magento\Framework\App\Response\Http $redirect,
+        \Magento\Framework\Message\ManagerInterface $messageManager,
+        \Magento\Framework\Controller\ResultFactory $resultFactory
     ) {
         $this->isRegistor = true;
         $this->customerSession = $customerSession;
         $this->eavAttribute = $eavAttribute;
-        $this->_store = $store;
-        $this->helper = $helper;
-        $this->_scopeConfig = $scopeConfig;
+        $this->store = $store;
         $this->coreSession = $coreSession;
         $this->session = $session;
         $this->instagramService = $instagramService;
-        $this->_resultPageFactory = $resultPageFactory;
-        $this->cacheManagment = $cacheManagement;
-        $this->requset = $request;
+        $this->cacheManagement = $cacheManagement;
+        $this->request = $request;
         $this->url = $url;
         $this->socialCustomerHelper = $socialCustomerHelper;
         $this->socialCustomerCreate = $socialCustomerCreate;
         $this->redirect = $redirect;
-        parent::__construct($context);
+        $this->messageManager = $messageManager;
+        $this->resultFactory = $resultFactory;
     }
 
-    /**
-     * Get userinformation from api
-     */
     public function execute()
     {
         $this->instagramService->setParameters();
-        $this->cacheManagment->cleanCache();
+        $this->cacheManagement->cleanCache();
 
         try {
-            $isSecure = $this->_store->isCurrentlySecure();
+            $isSecure = $this->store->isCurrentlySecure();
             $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
 
             $this->instagramConnect();
@@ -121,26 +148,32 @@ class Connect extends Action
             }
         }
 
-        if (!empty($this->referer)) {
-            $redirectUrl = $this->_url->getUrl('socialauth/authorize/redirect/');
-            if (!$isSecure) {
-                $redirectUrl = str_replace("https://", "http://", $redirectUrl);
-            }
-            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath($redirectUrl);
-        } else {
-            return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
+        $redirectUrl = $this->url->getUrl('socialauth/authorize/redirect/');
+
+        if (empty($this->referer)) {
+            $redirectUrl .= '?' . http_build_query(['noroute' => true]);
         }
+
+        if (!$isSecure) {
+            $redirectUrl = str_replace("https://", "http://", $redirectUrl);
+        }
+
+        return $this->resultFactory->create(
+            \Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT
+        )->setPath($redirectUrl);
     }
 
     /**
-     * Login customer
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     protected function instagramConnect()
     {
         $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
-        $errorCode = $this->requset->getParam('error');
-        $code = $this->requset->getParam('code');
-        $state = $this->requset->getParam('state');
+        $errorCode = $this->request->getParam('error');
+        $code = $this->request->getParam('code');
+        $state = $this->request->getParam('state');
 
         if (!$this->isRequestValid($errorCode, $code, $state)) {
             return;
@@ -196,7 +229,7 @@ class Connect extends Action
 
             $userInfo->full_name = (isset($userInfo->full_name)) ? $userInfo->full_name : $userInfo->username;
             if (empty($userInfo->full_name)) {
-                throw new LocalizedException(
+                throw new \Magento\Framework\Exception\LocalizedException(
                     __('Sorry, could not retrieve your %1 last name. Please try again.', __('Instagram'))
                 );
             }
@@ -250,16 +283,15 @@ class Connect extends Action
     }
 
     /**
-     * Connect Customer By InstagramId
-     *
-     * @param mixed $customersByInstagramId
-     * @param mixed $userInfo
-     * @param mixed $token
+     * @param $customersByInstagramId
+     * @param $userInfo
+     * @param $token
      * @return void
+     * @throws \Exception
      */
     public function connectExistingAccount($customersByInstagramId, $userInfo, $token)
     {
-        $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
+        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
         if ($this->customerSession->isLoggedIn()) {
             // Logged in user
             if ($customersByInstagramId->getTotalCount()) {
@@ -300,14 +332,13 @@ class Connect extends Action
     }
 
     /**
-     * Check Account By Instagram Id
-     *
-     * @param mixed $customersByInstagramId
+     * @param $customersByInstagramId
      * @return bool
+     * @throws \Exception
      */
-    public function checkAccountByInstagramId($customersByInstagramId)
+    protected function checkAccountByInstagramId($customersByInstagramId)
     {
-        $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
+        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
         if ($customersByInstagramId->getTotalCount()) {
             $this->isRegistor = false;
             foreach ($customersByInstagramId->getItems() as $customerInfo) {
@@ -330,6 +361,13 @@ class Connect extends Action
         return false;
     }
 
+    /**
+     * @param $errorCode
+     * @param $code
+     * @param $state
+     * @return bool
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     protected function isRequestValid($errorCode, $code, $state)
     {
         if (!($errorCode || $code) && !$state) {

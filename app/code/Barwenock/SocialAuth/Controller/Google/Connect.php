@@ -2,117 +2,131 @@
 
 namespace Barwenock\SocialAuth\Controller\Google;
 
-use Magento\Framework\App\Action\Context;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\View\Result\PageFactory;
-use Magento\Framework\Session\Generic;
-use Magento\Store\Model\Store;
-use Magento\Framework\Url;
-use Magento\Eav\Model\ResourceModel\Entity\Attribute;
-use Webkul\SocialSignup\Helper\Data;
-
 class Connect implements \Magento\Framework\App\ActionInterface
 {
+    /**
+     * Connect social media type
+     */
     protected const CONNECT_TYPE = 'google';
-    /**
-     * @var isRegistor
-     */
+
     protected $isRegistor;
-
-    /**
-     * @var PageFactory
-     */
-    private $resultPageFactory;
-
-    /**
-     * @var Store
-     */
-    private $store;
-
-    /**
-     * @var \Magento\Framework\Session\Generic
-     */
-    private $session;
-
-    /**
-     * @var Url
-     */
-    protected $url;
-
-    /**
-     * @var Attribute
-     */
-    private $eavAttribute;
-
-    /**
-     * @var \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer
-     */
-    private $socialCustomerHelper;
 
     /**
      * @var \Magento\Customer\Model\Session
      */
-    private $customerSession;
+    protected $customerSession;
 
     /**
-     * Construct intialization
-     *
-     * @param Data $helper
-     * @param Generic $session
-     * @param Context $context
-     * @param Store $store
+     * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute
+     */
+    protected $eavAttribute;
+
+    /**
+     * @var \Magento\Store\Model\Store
+     */
+    protected $store;
+
+    /**
+     * @var \Magento\Framework\Session\SessionManagerInterface
+     */
+    protected $coreSession;
+
+    /**
+     * @var \Magento\Framework\Session\Generic
+     */
+    protected $session;
+
+    /**
+     * @var \Barwenock\SocialAuth\Service\Authorize\Google
+     */
+    protected $googleService;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\CacheManagement
+     */
+    protected $cacheManagement;
+
+    /**
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $request;
+
+    /**
+     * @var \Magento\Framework\Url
+     */
+    protected $url;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer
+     */
+    protected $socialCustomerHelper;
+
+    /**
+     * @var \Barwenock\SocialAuth\Model\Customer\Create
+     */
+    protected $socialCustomerCreate;
+
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
+    protected $messageManager;
+
+    /**
+     * @var \Magento\Framework\Controller\ResultFactory
+     */
+    protected $resultFactory;
+
+    /**
+     * @param \Magento\Framework\Session\Generic $session
+     * @param \Magento\Store\Model\Store $store
      * @param \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper
-     * @param Attribute $eavAttribute
+     * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute
      * @param \Barwenock\SocialAuth\Service\Authorize\Google $googleService
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
      * @param \Magento\Customer\Model\Session $customerSession
-     * @param PageFactory $resultPageFactory
+     * @param \Magento\Framework\Controller\ResultFactory $resultFactory
+     * @param \Magento\Framework\Message\ManagerInterface $massageManager
+     * @param \Barwenock\SocialAuth\Helper\CacheManagement $cacheManagement
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param \Magento\Framework\UrlInterface $url
+     * @param \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
+     * @param \Magento\Framework\App\Response\Http $redirect
      */
     public function __construct(
-        Data $helper,
-        Generic $session,
-        Context $context,
-        Store $store,
+        \Magento\Framework\Session\Generic $session,
+        \Magento\Store\Model\Store $store,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
-        Attribute $eavAttribute,
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
         \Barwenock\SocialAuth\Service\Authorize\Google $googleService,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Framework\Session\SessionManagerInterface $coreSession,
         \Magento\Customer\Model\Session $customerSession,
-        PageFactory $resultPageFactory,
         \Magento\Framework\Controller\ResultFactory $resultFactory,
         \Magento\Framework\Message\ManagerInterface $massageManager,
         \Barwenock\SocialAuth\Helper\CacheManagement $cacheManagement,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\UrlInterface $url,
-        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate,
-        \Magento\Framework\App\Response\Http $redirect
+        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
     ) {
         $this->isRegistor = true;
-        $this->helper = $helper;
         $this->customerSession = $customerSession;
         $this->socialCustomerHelper = $socialCustomerHelper;
         $this->eavAttribute = $eavAttribute;
         $this->store = $store;
-        $this->_scopeConfig = $scopeConfig;
         $this->session = $session;
         $this->coreSession = $coreSession;
         $this->googleService = $googleService;
-        $this->resultPageFactory = $resultPageFactory;
         $this->resultFactory = $resultFactory;
         $this->messageManager = $massageManager;
-        $this->cacheManagment = $cacheManagement;
-        $this->requset = $request;
+        $this->cacheManagement = $cacheManagement;
+        $this->request = $request;
         $this->url = $url;
         $this->socialCustomerCreate = $socialCustomerCreate;
-        $this->redirect = $redirect;
     }
 
     public function execute()
     {
         $this->googleService->setParameters();
-        $this->cacheManagment->cleanCache();
+        $this->cacheManagement->cleanCache();
 
         try {
             $isSecure = $this->store->isCurrentlySecure();
@@ -127,27 +141,32 @@ class Connect implements \Magento\Framework\App\ActionInterface
             }
         }
 
-        if (!empty($this->referer)) {
-            $redirectUrl = $this->url->getUrl('socialauth/authorize/redirect/');
-            if (!$isSecure) {
-                $redirectUrl = str_replace("https://", "http://", $redirectUrl);
-            }
+        $redirectUrl = $this->url->getUrl('socialauth/authorize/redirect/');
 
-            return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)->setPath($redirectUrl);
-        } else {
-            return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
+        if (empty($this->referer)) {
+            $redirectUrl .= '?' . http_build_query(['noroute' => true]);
         }
+
+        if (!$isSecure) {
+            $redirectUrl = str_replace("https://", "http://", $redirectUrl);
+        }
+
+        return $this->resultFactory->create(
+            \Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT
+        )->setPath($redirectUrl);
     }
 
     /**
-     * Get google account
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     protected function googleConnect()
     {
         $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
-        $errorCode = $this->requset->getParam('error');
-        $code = $this->requset->getParam('code');
-        $state = $this->requset->getParam('state');
+        $errorCode = $this->request->getParam('error');
+        $code = $this->request->getParam('code');
+        $state = $this->request->getParam('state');
 
         if (!$this->isRequestValid($errorCode, $code, $state)) {
             return;
@@ -199,7 +218,6 @@ class Connect implements \Magento\Framework\App\ActionInterface
             return;
         }
 
-            // New connection - create, attach, login
         if (empty($userInfo->given_name)) {
             if (!$isCheckoutPageReq) {
                 $this->messageManager->addErrorMessage(
@@ -256,6 +274,13 @@ class Connect implements \Magento\Framework\App\ActionInterface
         }
     }
 
+    /**
+     * @param $errorCode
+     * @param $code
+     * @param $state
+     * @return bool
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     protected function isRequestValid($errorCode, $code, $state)
     {
         if (!($errorCode || $code) && !$state) {
@@ -284,16 +309,15 @@ class Connect implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * Get active account
-     *
-     * @param object $customersByGoogleId
-     * @param object  $userInfo
-     * @param string $token
+     * @param $customersByGoogleId
+     * @param $userInfo
+     * @param $token
      * @return void
+     * @throws \Exception
      */
     private function connectExistingAccount($customersByGoogleId, $userInfo, $token)
     {
-        $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
+        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
         if ($this->customerSession->isLoggedIn()) {
             // Logged in user
             if ($customersByGoogleId->getTotalCount()) {
@@ -343,18 +367,16 @@ class Connect implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * Check customer account by google id
-     *
-     * @param  $customersByGoogleId
+     * @param $customersByGoogleId
      * @return bool
      * @throws \Exception
      */
     protected function checkAccountByGoogleId($customersByGoogleId)
     {
-        $isCheckoutPageReq = $this->helper->getCoreSession()->getIsSocialSignupCheckoutPageReq();
+        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
         if ($customersByGoogleId->getTotalCount()) {
             $this->isRegistor = false;
-            // Existing connected user - login
+
             foreach ($customersByGoogleId->getItems() as $customerInfo) {
                 $customer = $customerInfo;
             }

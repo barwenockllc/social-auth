@@ -2,84 +2,31 @@
 
 namespace Barwenock\SocialAuth\Controller\Facebook;
 
-use Magento\Framework\App\Action\Context;
-use Magento\Framework\View\Result\PageFactory;
-use Magento\Framework\Controller\ResultFactory;
-use Webkul\SocialSignup\Api\FacebooksignupRepositoryInterface;
-use Magento\Framework\Url\DecoderInterface;
-use Magento\Customer\Model\Url;
-use Magento\Framework\Mail\Template\TransportBuilder;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Session\SessionManagerInterface;
-use Magento\Framework\Stdlib\CookieManagerInterface;
-
 class Authorize implements \Magento\Framework\App\ActionInterface
 {
+    /**
+     * Connect social media type
+     */
     const CONNECT_TYPE = 'facebook';
 
     /**
-     * @var isRegistor
-     */
-    protected $isRegistor;
-
-    /**
-     * @var PageFactory
-     */
-    private $customerSession;
-
-    /**
-     * @var EncoderInterface
-     */
-    private $urlDecoder;
-
-    /**
-     * @var \Magento\Framework\HTTP\Client\Curl
-     */
-    private $curl;
-
-    /**
-     * @var CookieManagerInterface
-     */
-    private $cookieManager;
-
-    /**
-     * @var $isCheckoutPageReq
-     */
-    private $isCheckoutPageReq;
-
-    /**
-     * Construct intialization
-     *
-     * @param Context $context
      * @param \Magento\Customer\Model\Session $customerSession
-     * @param \Magento\Customer\Model\ResourceModel\Customer $customerResourceModel
-     * @param \Magento\Customer\Model\Customer $customerModel
-     * @param \Webkul\SocialSignup\Api\Data\FacebooksignupInterfaceFactory $facebooksignupFactory
-     * @param FacebooksignupRepositoryInterface $facebooksignupRepository
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param DecoderInterface $urlDecoder
-     * @param Url $customerUrlModel
-     * @param ScopeConfigInterface $scopeConfig
-     * @param TransportBuilder $transportBuilder
-     * @param SessionManagerInterface $coreSession
-     * @param \Magento\Framework\HTTP\Client\Curl $curl
-     * @param CookieManagerInterface $cookieManager
-     * @param PageFactory $resultPageFactory
+     * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
+     * @param \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager
      * @param \Psr\Log\LoggerInterface $logger
-     * @param \Zend\Uri\Uri $zendUri
-     * @param \Webkul\SocialSignup\Helper\Data $helperData
-     * @param \Magento\Framework\Json\Helper\Data $jsonHelper
-     * @param \Magento\Framework\App\Response\RedirectInterface $redirect
-     * @param \Magento\Framework\Serialize\Serializer\Base64Json $base64Json
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param \Magento\Framework\Controller\ResultFactory $resultFactory
+     * @param \Magento\Framework\Message\ManagerInterface $messageManager
+     * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
+     * @param \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper
+     * @param \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
+     * @param \Barwenock\SocialAuth\Service\Authorize\Facebook $facebookService
      */
     public function __construct(
         \Magento\Customer\Model\Session $customerSession,
-        DecoderInterface $urlDecoder,
-        SessionManagerInterface $coreSession,
-        \Magento\Framework\HTTP\Client\Curl $curl,
-        CookieManagerInterface $cookieManager,
+        \Magento\Framework\Session\SessionManagerInterface $coreSession,
+        \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager,
         \Psr\Log\LoggerInterface $logger,
-        \Magento\Framework\Json\Helper\Data $jsonHelper,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\Controller\ResultFactory $resultFactory,
         \Magento\Framework\Message\ManagerInterface $messageManager,
@@ -88,14 +35,10 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate,
         \Barwenock\SocialAuth\Service\Authorize\Facebook $facebookService
     ) {
-        $this->urlDecoder = $urlDecoder;
         $this->customerSession = $customerSession;
-        $this->curl = $curl;
         $this->coreSession = $coreSession;
         $this->cookieManager = $cookieManager;
         $this->logger = $logger;
-        $this->isCheckoutPageReq = 0;
-        $this->jsonHelper = $jsonHelper;
         $this->request = $request;
         $this->resultFactory = $resultFactory;
         $this->messageManager = $messageManager;
@@ -106,9 +49,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->isRegistor = false;
     }
 
-    /**
-     * Execute function
-     */
     public function execute()
     {
         $isCheckoutPageReq = 0;
@@ -116,7 +56,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         if (isset($post['is_checkoutPageReq']) && $post['is_checkoutPageReq'] == 1) {
             $isCheckoutPageReq = 1;
         }
-        $this->isCheckoutPageReq = $isCheckoutPageReq;
         $facebookUser = null;
 
         try {
@@ -172,11 +111,10 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * Get facebook cookie
-     *
-     * @param  int    $appId     faceboook id
-     * @param  string $appSecret facebook secret key
-     * @return array
+     * @param $appId
+     * @param $appSecret
+     * @return array|bool|float|int|mixed|string
+     * @throws \Exception
      */
     private function getFacebookCookie($appId, $appSecret)
     {
@@ -193,11 +131,10 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * Get facebook data
-     *
-     * @param  array   $facebookUser      facebook user data
-     * @param  boolean $isCheckoutPageReq check socialsignup request from checkoutpage
-     * @return array
+     * @param $facebookUser
+     * @param $isCheckoutPageReq
+     * @return void
+     * @throws \Exception
      */
     private function callBack($facebookUser, $isCheckoutPageReq)
     {

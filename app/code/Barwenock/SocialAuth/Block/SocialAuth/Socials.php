@@ -8,16 +8,18 @@ class Socials extends \Magento\Framework\View\Element\Template
 
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
-        \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
-        \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\Locale\Resolver $localeResolver,
-        \Magento\Framework\Serialize\Serializer\Json $serializer,
-        array $data = []
+        \Barwenock\SocialAuth\Helper\Adminhtml\Config    $configHelper,
+        \Magento\Customer\Model\Session                  $customerSession,
+        \Magento\Framework\Locale\Resolver               $localeResolver,
+        \Magento\Framework\Serialize\Serializer\Json     $serializer,
+        \Barwenock\SocialAuth\Helper\SocialAuth          $socialAuthHelper,
+        array                                            $data = []
     ) {
         $this->configHelper = $configHelper;
         $this->customerSession = $customerSession;
         $this->localeResolver = $localeResolver;
         $this->serializer = $serializer;
+        $this->socialAuthHelper = $socialAuthHelper;
         parent::__construct($context, $data);
     }
 
@@ -48,17 +50,7 @@ class Socials extends \Magento\Framework\View\Element\Template
 
     public function isAnySocialEnabled()
     {
-        // Define an array of status values to check
-        $statuses = [
-            $this->configHelper->getFacebookStatus(),
-            $this->configHelper->getTwitterStatus(),
-            $this->configHelper->getGoogleStatus(),
-            $this->configHelper->getLinkedinStatus(),
-            $this->configHelper->getInstagramStatus(),
-        ];
-
-        // Check if any of the statuses is equal to 1 (enabled)
-        return in_array(1, $statuses);
+        return $this->socialAuthHelper->isAnySocialEnabled();
     }
 
     public function getSocialConnectImage($type)

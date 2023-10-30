@@ -37,37 +37,20 @@
                         Automatically subscribe customers to the newsletter during the registration process
                     </comment>
                 </field>
-                <field id="login_redirect" translate="label comment" type="select" sortOrder="100"
+                <field id="authorization_redirect" translate="label comment" type="select" sortOrder="100"
                        showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Successful Login Page</label>
+                    <label>Successful Authorize Page</label>
                     <source_model>Barwenock\SocialAuth\Model\Config\Source\Redirect</source_model>
-                    <comment>After each successful login, the user will be directed to this page.</comment>
+                    <comment>After each successful authorization, the user will be directed to this page.</comment>
                 </field>
-                <field id="login_redirect_url" translate="label comment" type="text" sortOrder="110"
+                <field id="authorize_redirect_url" translate="label comment" type="text" sortOrder="110"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>URL for Successful Login Page</label>
                     <comment>
                         Please provide the complete URL, including the domain name, to which you wish to redirect.
                     </comment>
                     <depends>
-                        <field id="login_redirect">__custom__</field>
-                    </depends>
-                </field>
-                <field id="register_redirect" translate="label comment" type="select" sortOrder="120"
-                       showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Registration Success Page</label>
-                    <source_model>Barwenock\SocialAuth\Model\Config\Source\Redirect</source_model>
-                    <comment>User will be redirected to this page after successful registration</comment>
-                </field>
-                <field id="register_redirect_url" translate="label comment" type="text" sortOrder="130"
-                       showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Registration Custom Success Page URL</label>
-                    <comment>
-                        Please enter the full URL of the page, including the domain name,
-                        to which you will be redirecting.
-                    </comment>
-                    <depends>
-                        <field id="register_redirect">__custom__</field>
+                        <field id="authorization_redirect">5</field>
                     </depends>
                 </field>
             </group>
@@ -105,7 +88,7 @@
                         We recommend an image size of 40x40 pixels with a square aspect ratio.
                     </comment>
                     <backend_model>Magento\Config\Model\Config\Backend\Image</backend_model>
-                    <base_url type="media" scope_info="1">socialauth/fb</base_url>
+                    <base_url type="media" scope_info="1">socialauth/facebook</base_url>
                     <upload_dir config="system/filesystem/media" scope_info="1">socialauth/facebook</upload_dir>
                     <depends>
                         <field id="status">1</field>
