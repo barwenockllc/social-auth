@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Barwenock_SocialAuth::css/socialauth.css"/>
+    </head>
+    <body>
+    <referenceContainer name="content">
+        <referenceBlock name="authentication-popup" template="Barwenock_SocialAuth::account/authentication-popup.phtml">
+                <arguments>
+                    <argument name="socialAuthHelper" xsi:type="object">
+                        \Barwenock\SocialAuth\Helper\SocialAuth
+                    </argument>
+                    <argument name="jsLayout" xsi:type="array">
+                        <item name="components" xsi:type="array">
+                            <item name="authenticationPopup" xsi:type="array">
+                                <item name="children" xsi:type="array">
+                                    <item name="socialauth-authentication" xsi:type="array">
+                                        <item name="sortOrder" xsi:type="string">1</item>
+                                        <item name="component" xsi:type="string">
+                                            Barwenock_SocialAuth/js/view/form/element/socialauthGuestCheckoutPopup
+                                        </item>
+                                        <item name="displayArea" xsi:type="string">additional-login-form-fields</item>
+                                    </item>
+                                </item>
+                            </item>
+                        </item>
+                    </argument>
+                </arguments>
+        </referenceBlock>
+    </referenceContainer>
+    </body>
+</page>

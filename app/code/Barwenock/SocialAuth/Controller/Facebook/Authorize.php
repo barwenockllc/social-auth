@@ -9,11 +9,62 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     const CONNECT_TYPE = 'facebook';
 
+    protected $isRegistor;
+
+    /**
+     * @var \Magento\Customer\Model\Session
+     */
+    protected $customerSession;
+
+    /**
+     * @var \Magento\Framework\Session\SessionManagerInterface
+     */
+    protected $coreSession;
+
+    /**
+     * @var \Magento\Framework\Stdlib\CookieManagerInterface
+     */
+    protected $cookieManager;
+
+    /**
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $request;
+
+    /**
+     * @var \Magento\Framework\Controller\ResultFactory
+     */
+    protected $resultFactory;
+
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
+    protected $messageManager;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
+     */
+    protected $configHelper;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer
+     */
+    protected $socialCustomerHelper;
+
+    /**
+     * @var \Barwenock\SocialAuth\Model\Customer\Create
+     */
+    protected $socialCustomerCreate;
+
+    /**
+     * @var \Barwenock\SocialAuth\Service\Authorize\Facebook
+     */
+    protected $facebookService;
+
     /**
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
      * @param \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager
-     * @param \Psr\Log\LoggerInterface $logger
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\Controller\ResultFactory $resultFactory
      * @param \Magento\Framework\Message\ManagerInterface $messageManager
@@ -26,7 +77,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\Session\SessionManagerInterface $coreSession,
         \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager,
-        \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\Controller\ResultFactory $resultFactory,
         \Magento\Framework\Message\ManagerInterface $messageManager,
@@ -38,7 +88,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->customerSession = $customerSession;
         $this->coreSession = $coreSession;
         $this->cookieManager = $cookieManager;
-        $this->logger = $logger;
         $this->request = $request;
         $this->resultFactory = $resultFactory;
         $this->messageManager = $messageManager;
@@ -56,9 +105,9 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         if (isset($post['is_checkoutPageReq']) && $post['is_checkoutPageReq'] == 1) {
             $isCheckoutPageReq = 1;
         }
-        $facebookUser = null;
 
         try {
+            $facebookUser = null;
             $facebookAppId = $this->configHelper->getFacebookAppId();
             $facebookAppSecretKey = $this->configHelper->getFacebookAppSecret();
 
@@ -74,39 +123,32 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         $this->messageManager->addErrorMessage(
                             __(
                                 'There is some privacy with this Facebook Account,'
-                                .' so please check your account or signup with another account.'
+                                .' so please check your account or authorize with another account.'
                             )
                         );
                     } else {
                         $this->coreSession->setErrorMsg(
                             __(
                                 'There is some privacy with this Facebook Account,'
-                                .'so please check your account or signup with another account.'
+                                .'so please check your account or authorize with another account.'
                             )
                         );
                     }
-                    $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
+                    $resultRedirect = $this->resultFactory
+                        ->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT);
                     return $resultRedirect->setPath('customer/account/login');
                 } else {
-                    $redirectPath = $this->callBack($facebookUser, $isCheckoutPageReq);
-                    if ($redirectPath) {
-                        $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
-                        return $resultRedirect->setPath($redirectPath);
-                    }
-                    return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)
+                    $this->callBack($facebookUser, $isCheckoutPageReq);
+
+                    return $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT)
                         ->setPath('customer/account/login');
                 }
             } else {
-                return $this->resultFactory->create(ResultFactory::TYPE_REDIRECT)
+                return $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT)
                     ->setPath('customer/account/login');
             }
-        } catch (\Exception $e) {
-            $this->logger->info('Controller Facebook Login : '.$e->getMessage());
-            $this->messageManager->addErrorMessage(__('Something went wrong, please check log file.'));
-            $this->coreSession->setErrorMsg(
-                __('Something went wrong, please check log file.')
-            );
-            return $resultRedirect->setPath('customer/account/login');
+        } catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage());
         }
     }
 
@@ -116,7 +158,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @return array|bool|float|int|mixed|string
      * @throws \Exception
      */
-    private function getFacebookCookie($appId, $appSecret)
+    protected function getFacebookCookie($appId, $appSecret)
     {
         try {
             $cookieData = $this->cookieManager->getCookie('fbsr_' . $appId);
@@ -136,7 +178,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @return void
      * @throws \Exception
      */
-    private function callBack($facebookUser, $isCheckoutPageReq)
+    protected function callBack($facebookUser, $isCheckoutPageReq)
     {
         try {
             if (isset($facebookUser['id']) && $facebookUser['id']) {

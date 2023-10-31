@@ -4,12 +4,30 @@ namespace Barwenock\SocialAuth\Block\Product;
 
 class ProductShare extends \Magento\Framework\View\Element\Template
 {
+    /**
+     * @var \Magento\Catalog\Model\ProductRepository
+     */
+    protected $productRepository;
+
+    /**
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    protected $request;
+
+    /**
+     * @param \Magento\Framework\View\Element\Template\Context $context
+     * @param \Magento\Catalog\Model\ProductRepository $productRepository
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param array $data
+     */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
-        \Magento\Framework\Registry $registry,
+        \Magento\Catalog\Model\ProductRepository $productRepository,
+        \Magento\Framework\App\RequestInterface $request,
         array $data = []
     ) {
-        $this->registry = $registry;
+        $this->productRepository = $productRepository;
+        $this->request = $request;
         parent::__construct($context, $data);
     }
 
@@ -27,10 +45,15 @@ class ProductShare extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * @return mixed|null
+     * @return \Magento\Catalog\Api\Data\ProductInterface|mixed|void|null
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getCurrentProduct()
     {
-        return $this->registry->registry('current_product');
+        $productId = $this->request->getParam('id');
+
+        if ($productId) {
+            return $this->productRepository->getById($productId);
+        }
     }
 }

@@ -10,3 +10,7 @@
     display: inline-block;
     width: 100%;
 }
+
+.social_block {
+    display: inline-flex;
+}

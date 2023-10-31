@@ -4,7 +4,7 @@ namespace Barwenock\SocialAuth\Service\Authorize;
 
 class Google
 {
-    protected const REDIRECT_URI_ROUTE = 'socialauth/google/connect';
+    protected const REDIRECT_URI_ROUTE = 'socialauth/google/authorize';
     protected const OAUTH2_TOKEN_URI = 'https://accounts.google.com/o/oauth2/token';
     protected const OAUTH2_AUTH_URI = 'https://accounts.google.com/o/oauth2/auth';
     protected const OAUTH2_SERVICE_URI = 'https://www.googleapis.com/oauth2/v2';

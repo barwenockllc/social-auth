@@ -4,7 +4,7 @@ namespace Barwenock\SocialAuth\Service\Authorize;
 
 class Linkedin
 {
-    protected const REDIRECT_URI_ROUTE = 'socialauth/linkedin/connect';
+    protected const REDIRECT_URI_ROUTE = 'socialauth/linkedin/authorize';
     protected const OAUTH2_SERVICE_URI = 'https://api.linkedin.com';
     protected const OAUTH2_AUTH_URI = 'https://www.linkedin.com/oauth/v2/authorization';
     protected const OAUTH2_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken';

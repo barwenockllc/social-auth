@@ -4,7 +4,7 @@ namespace Barwenock\SocialAuth\Service\Authorize;
 
 class Instagram
 {
-    public const REDIRECT_URI_ROUTE = 'socialauth/instagram/connect';
+    public const REDIRECT_URI_ROUTE = 'socialauth/instagram/authorize';
     public const OAUTH2_SERVICE_URI = 'https://graph.instagram.com/';
     public const OAUTH2_AUTH_URI = 'https://api.instagram.com/oauth/authorize';
     public const OAUTH2_TOKEN_URI = 'https://api.instagram.com/oauth/access_token';

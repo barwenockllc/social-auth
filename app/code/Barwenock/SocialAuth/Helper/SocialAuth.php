@@ -2,11 +2,54 @@
 
 namespace Barwenock\SocialAuth\Helper;
 
-use Magento\Framework\App\Helper\Context;
-
 class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
     \Magento\Framework\View\Element\Block\ArgumentInterface
 {
+    /**
+     * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
+     */
+    protected $adminConfig;
+
+    /**
+     * @var \Magento\Framework\Locale\Resolver
+     */
+    protected $resolver;
+
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    protected $url;
+
+    /**
+     * @var \Magento\Framework\View\Asset\Repository
+     */
+    protected $asset;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
+     * @var \Magento\Customer\Model\Session
+     */
+    protected $session;
+
+    /**
+     * @var \Magento\Framework\Serialize\Serializer\Json
+     */
+    protected $jsonSerializer;
+
+    /**
+     * @param \Magento\Framework\App\Helper\Context $context
+     * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $adminConfig
+     * @param \Magento\Framework\Locale\Resolver $resolver
+     * @param \Magento\Framework\UrlInterface $url
+     * @param \Magento\Framework\View\Asset\Repository $asset
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Customer\Model\Session $session
+     * @param \Magento\Framework\Serialize\Serializer\Json $jsonSerializer
+     */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $adminConfig,
@@ -27,27 +70,31 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
         parent::__construct($context);
     }
 
+    /**
+     * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     public function getSocialsConfiguration()
     {
         $config = [
-            'fb_status' => $this->adminConfig->getFacebookStatus(),
-            'google_status' => $this->adminConfig->getGoogleStatus(),
-            'twitter_status' => $this->adminConfig->getTwitterStatus(),
-            'linkedin_status' => $this->adminConfig->getLinkedinStatus(),
-            'insta_status' => $this->adminConfig->getInstagramStatus(),
-            'fbAppId' => $this->adminConfig->getFacebookAppId(),
-            'uId' => 0,
+            'moduleStatus' => $this->adminConfig->getModuleStatus(),
+            'isCheckoutOn' => $this->isCheckoutPageOn(),
+            'socialStatus' => $this->isAnySocialEnabled(),
+            'facebookStatus' => $this->adminConfig->getFacebookStatus(),
+            'googleStatus' => $this->adminConfig->getGoogleStatus(),
+            'twitterStatus' => $this->adminConfig->getTwitterStatus(),
+            'linkedinStatus' => $this->adminConfig->getLinkedinStatus(),
+            'instagramStatus' => $this->adminConfig->getInstagramStatus(),
+            'facebookAppId' => $this->adminConfig->getFacebookAppId(),
+            'facebookUserId' => 0,
             'localeCode' => $this->resolver->getLocale(),
-            'fbLoginUrl' => $this->url->getUrl('socialauth/facebook/authorize'),
-            'status' => $this->isAnySocialEnabled(),
-            'loginImg' => $this->getSocialImage('facebook'),
-            'twitterLoginImg' => $this->getSocialImage('twitter'),
-            'googleLoginImg' => $this->getSocialImage('google'),
-            'LinkedinLoginImg' => $this->getSocialImage('linkedin'),
-            'InstaLoginImg' => $this->getSocialImage('instagram'),
-            'socialSignupModuleEnable' => $this->adminConfig->getModuleStatus(),
-            'pageCallCheckout' => $this->isCheckoutPageOn(),
-            'popupData' => [
+            'facebookAuthUrl' => $this->url->getUrl('socialauth/facebook/authorize'),
+            'facebookAuthIcon' => $this->getSocialImage('facebook'),
+            'twitterAuthIcon' => $this->getSocialImage('twitter'),
+            'googleAuthIcon' => $this->getSocialImage('google'),
+            'linkedinAuthIcon' => $this->getSocialImage('linkedin'),
+            'instagramAuthIcon' => $this->getSocialImage('instagram'),
+            'popupConfiguration' => [
                 "width" => '700',
                 "height" => '300',
                 "twitterUrl" => $this->storeManager->getStore()
@@ -60,12 +107,15 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
                     ->getUrl('socialauth/instagram/request', ['mainw_protocol' => 'http']),
             ],
             'isCustomerLoggedIn' => $this->session->isLoggedIn(),
-            'getMessagesUrl' => $this->url->getUrl('socialauth/message/check'),
+            'getMessagesUrl' => $this->url->getUrl('socialauth/message/display'),
         ];
 
         return $config;
     }
 
+    /**
+     * @return bool
+     */
     public function isAnySocialEnabled()
     {
         // Define an array of status values to check
@@ -81,6 +131,11 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
         return in_array(1, $statuses);
     }
 
+    /**
+     * @param $socialType
+     * @return string
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     public function getSocialImage($socialType)
     {
         $image = $this->adminConfig->getSocialConnectImage($socialType);
@@ -109,6 +164,10 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
         }
     }
 
+    /**
+     * @param $data
+     * @return bool|string
+     */
     public function serializeData($data)
     {
         return $this->jsonSerializer->serialize($data);

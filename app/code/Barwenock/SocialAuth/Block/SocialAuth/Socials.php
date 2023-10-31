@@ -4,8 +4,45 @@ namespace Barwenock\SocialAuth\Block\SocialAuth;
 
 class Socials extends \Magento\Framework\View\Element\Template
 {
+    /**
+     * @var \Magento\Framework\View\Element\Template\Context
+     */
+    protected $context;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
+     */
+    public $configHelper;
+
+    /**
+     * @var \Magento\Customer\Model\Session
+     */
     protected $customerSession;
 
+    /**
+     * @var \Magento\Framework\Locale\Resolver
+     */
+    protected $localeResolver;
+
+    /**
+     * @var \Magento\Framework\Serialize\Serializer\Json
+     */
+    protected $serializer;
+
+    /**
+     * @var \Barwenock\SocialAuth\Helper\SocialAuth
+     */
+    protected $socialAuthHelper;
+
+    /**
+     * @param \Magento\Framework\View\Element\Template\Context $context
+     * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
+     * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Framework\Locale\Resolver $localeResolver
+     * @param \Magento\Framework\Serialize\Serializer\Json $serializer
+     * @param \Barwenock\SocialAuth\Helper\SocialAuth $socialAuthHelper
+     * @param array $data
+     */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Barwenock\SocialAuth\Helper\Adminhtml\Config    $configHelper,
@@ -24,7 +61,7 @@ class Socials extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Social Signup enable or disable on login or signup page
+     * @return bool
      */
     public function displaySocialsOn()
     {
@@ -43,16 +80,27 @@ class Socials extends \Magento\Framework\View\Element\Template
         }
     }
 
+    /**
+     * @return bool
+     */
     public function ifCustomerLogin()
     {
         return $this->customerSession->isLoggedIn();
     }
 
+    /**
+     * @return bool
+     */
     public function isAnySocialEnabled()
     {
         return $this->socialAuthHelper->isAnySocialEnabled();
     }
 
+    /**
+     * @param $type
+     * @return string
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     public function getSocialConnectImage($type)
     {
         $image = $this->configHelper->getSocialConnectImage($type);
@@ -67,30 +115,46 @@ class Socials extends \Magento\Framework\View\Element\Template
         return $image;
     }
 
+    /**
+     * @return string
+     */
     public function getLocaleCode()
     {
         return $this->localeResolver->getLocale();
     }
 
+    /**
+     * @param $url
+     * @param $param
+     * @return string
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     public function getRequestUrl($url, $param)
     {
         return $this->_storeManager->getStore()->getUrl($url, $param);
     }
 
+    /**
+     * @return bool|string
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     public function getPopupData()
     {
         $popupData = [
             "width"=>'700',
             "height" => '300',
-            "twitterUrl" => $this->getRequestUrl('socialauth/twitter/request', ['mainw_protocol'=>'http']),
-            "linkedinUrl" => $this->getRequestUrl('socialauth/linkedin/request', ['mainw_protocol'=>'http']),
-            "googleUrl" => $this->getRequestUrl('socialauth/google/request', ['mainw_protocol'=>'http']),
-            "instagramUrl" => $this->getRequestUrl('socialauth/instagram/request', ['mainw_protocol'=>'http'])
+            "twitterUrl" => $this->getRequestUrl('socialauth/twitter/authorize', ['mainw_protocol'=>'http']),
+            "linkedinUrl" => $this->getRequestUrl('socialauth/linkedin/authorize', ['mainw_protocol'=>'http']),
+            "googleUrl" => $this->getRequestUrl('socialauth/google/authorize', ['mainw_protocol'=>'http']),
+            "instagramUrl" => $this->getRequestUrl('socialauth/instagram/authorize', ['mainw_protocol'=>'http'])
         ];
 
         return $this->serializer->serialize($popupData);
     }
 
+    /**
+     * @return bool|string
+     */
     public function getFacebookBlockData()
     {
         $data = [

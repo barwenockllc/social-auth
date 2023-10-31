@@ -8,7 +8,7 @@ class Twitter
     protected const ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token';
     protected const AUTHENTICATE_URL = 'https://api.twitter.com/oauth/authenticate';
     protected const ACCOUNT_VERIFY_URL = 'https://api.twitter.com/1.1/account/verify_credentials.json';
-    protected const REDIRECT_URI_ROUTE = 'socialauth/twitter/connect';
+    protected const REDIRECT_URI_ROUTE = 'socialauth/twitter/authorize';
 
     /**
      * @var \Magento\Framework\Url

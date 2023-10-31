@@ -1,0 +1,46 @@
+<!-- ko if: (moduleStatus && isCheckoutOn) -->
+    <div class="socialauth_container">
+        <div id="fb-root-authentication"></div>
+        <!-- ko if: !customerSession -->
+            <div class="socialauth_title">
+                <h3>Login With Social Media</h3>
+            </div>
+            <div class="social_block">
+                <!-- ko if: facebookStatus -->
+                    <div  id="facebook-billing-auth" class="socialauth fb_button_ps">
+                        <img data-bind="attr: { src: facebookAuthIcon, alt:$t('Facebook'),
+                        title: $t('Connect with Facebook') }"/>
+                    </div>
+                <!--/ko-->
+
+                <!-- ko if: twitterStatus -->
+                    <div  id="twitter-billing-auth" class="socialauth">
+                        <img data-bind="attr: { src: twitterAuthIcon, alt:$t('Twitter'),
+                         title: $t('Connect with Twitter') }"/>
+                    </div>
+                <!--/ko-->
+
+                <!-- ko if: googleStatus -->
+                    <div id="google-billing-auth" class="socialauth">
+                        <img data-bind="attr: { src: googleAuthIcon, alt:$t('Google'),
+                        title: $t('Connect with Google') }"/>
+                    </div>
+                <!--/ko-->
+
+                <!-- ko if: linkedinStatus -->
+                    <div  id="linkedin-billing-auth" class="socialauth">
+                        <img data-bind="attr: { src: linkedinAuthIcon, alt:$t('Linkedin'),
+                        title: $t('Connect with Linkedin') }"/>
+                    </div>
+                <!--/ko-->
+
+                <!-- ko if: instagramStatus -->
+                    <div  id="instagram-billing-auth" class="socialauth">
+                        <img data-bind="attr: { src: instagramAuthIcon, alt:$t('Instagram'),
+                         title: $t('Connect with Instagram') }"/>
+                    </div>
+                <!--/ko-->
+            </div>
+        <!--/ko-->
+    </div>
+<!--/ko-->

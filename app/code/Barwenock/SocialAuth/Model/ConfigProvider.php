@@ -24,7 +24,7 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
     public function getConfig()
     {
         return [
-            'socialauth_config' => $this->socialAuthHelper->getSocialsConfiguration()
+            'socialauthConfiguration' => $this->socialAuthHelper->getSocialsConfiguration()
         ];
     }
 }

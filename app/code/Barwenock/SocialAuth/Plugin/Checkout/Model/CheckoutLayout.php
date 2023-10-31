@@ -7,7 +7,7 @@ class CheckoutLayout
     /**
      * @var \Magento\Customer\Model\Session
      */
-    private $customerSession;
+    protected $customerSession;
 
     /**
      * @param \Magento\Customer\Model\Session $customerSession
@@ -17,6 +17,11 @@ class CheckoutLayout
         $this->customerSession = $customerSession;
     }
 
+    /**
+     * @param \Magento\Checkout\Block\Checkout\LayoutProcessor $subject
+     * @param array $jsLayout
+     * @return array
+     */
     public function afterProcess(\Magento\Checkout\Block\Checkout\LayoutProcessor $subject, array $jsLayout)
     {
         if ($this->customerSession->isLoggedIn()) {
@@ -40,7 +45,7 @@ class CheckoutLayout
      * @param array $values
      * @return array
      */
-    private function setFieldValues(array $jsLayout, array $values)
+    protected function setFieldValues(array $jsLayout, array $values)
     {
         $fieldsToUpdate = ['firstname', 'lastname'];
 

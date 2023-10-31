@@ -8,6 +8,11 @@ class Grid
 
     protected const LOGIN_TYPE_TABLE = 'socialauth_login_type';
 
+    /**
+     * @param $interceptor
+     * @param $collection
+     * @return mixed
+     */
     public function afterSearch($interceptor, $collection)
     {
         if ($collection->getMainTable() === self::CUSTOMER_GRID_TABLE) {

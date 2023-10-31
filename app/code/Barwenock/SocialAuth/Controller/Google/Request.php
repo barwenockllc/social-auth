@@ -42,7 +42,6 @@ class Request implements \Magento\Framework\App\ActionInterface
     /**
      * @param \Magento\Framework\Session\Generic $session
      * @param \Barwenock\SocialAuth\Service\Authorize\Google $googleClient
-     * @param \Webkul\SocialSignup\Helper\Data $helper
      * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\Controller\ResultFactory $resultFactory

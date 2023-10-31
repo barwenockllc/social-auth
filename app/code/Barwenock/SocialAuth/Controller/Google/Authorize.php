@@ -2,7 +2,7 @@
 
 namespace Barwenock\SocialAuth\Controller\Google;
 
-class Connect implements \Magento\Framework\App\ActionInterface
+class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
      * Connect social media type
@@ -315,7 +315,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
      * @return void
      * @throws \Exception
      */
-    private function connectExistingAccount($customersByGoogleId, $userInfo, $token)
+    protected function connectExistingAccount($customersByGoogleId, $userInfo, $token)
     {
         $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
         if ($this->customerSession->isLoggedIn()) {

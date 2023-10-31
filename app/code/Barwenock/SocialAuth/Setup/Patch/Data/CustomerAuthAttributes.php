@@ -7,16 +7,14 @@ class CustomerAuthAttributes implements \Magento\Framework\Setup\Patch\DataPatch
     /**
      * @var \Magento\Framework\Setup\ModuleDataSetupInterface
      */
-    private $moduleDataSetup;
+    protected $moduleDataSetup;
 
     /**
      * @var \Magento\Eav\Setup\EavSetupFactory
      */
-    private $eavSetupFactory;
+    protected $eavSetupFactory;
 
     /**
-     * __construct function
-     *
      * @param \Magento\Framework\Setup\ModuleDataSetupInterface $moduleDataSetup
      * @param \Magento\Eav\Setup\EavSetupFactory $eavSetupFactory
      */

@@ -13,20 +13,20 @@ define([
         _create: function () {
             let self = this;
             $(self.options.twitterLogin).on('click', function (e) {
-                self.showSocialSignupPopup(self.options.twitterUrl,self.options.width,self.options.height);
+                self.openSocialAuthPopup(self.options.twitterUrl,self.options.width,self.options.height);
             });
             $(self.options.linkedinLogin).on('click', function (e) {
-                self.showSocialSignupPopup(self.options.linkedinUrl,self.options.width,self.options.height);
+                self.openSocialAuthPopup(self.options.linkedinUrl,self.options.width,self.options.height);
             });
             $(self.options.googleLogin).on('click', function (e) {
-                self.showSocialSignupPopup(self.options.googleUrl,self.options.width,self.options.height);
+                self.openSocialAuthPopup(self.options.googleUrl,self.options.width,self.options.height);
             });
             $(self.options.instagramLogin).on('click', function (e) {
-                self.showSocialSignupPopup(self.options.instagramUrl,self.options.width,self.options.height);
+                self.openSocialAuthPopup(self.options.instagramUrl,self.options.width,self.options.height);
             });
         },
 
-        showSocialSignupPopup: function (url, width, height) {
+        openSocialAuthPopup: function (url, width, height) {
             let screenX = typeof window.screenX != 'undefined' ? window.screenX : window.screenLeft;
             let screenY = typeof window.screenY != 'undefined' ? window.screenY : window.screenTop;
             let outerWidth = typeof window.outerWidth != 'undefined' ? window.outerWidth : document.body.clientWidth;

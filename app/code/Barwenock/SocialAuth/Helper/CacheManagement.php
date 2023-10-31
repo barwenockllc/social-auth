@@ -29,6 +29,9 @@ class CacheManagement extends \Magento\Framework\App\Helper\AbstractHelper
         parent::__construct($context);
     }
 
+    /**
+     * @return void
+     */
     public function cleanCache()
     {
         $typesToClean = ['reflection', 'full_page'];

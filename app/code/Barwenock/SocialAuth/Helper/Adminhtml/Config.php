@@ -40,6 +40,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * @return mixed
+     */
     public function getSocialDisplayOn()
     {
         return $this->scopeConfig->getValue(
@@ -48,6 +51,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * @return mixed
+     */
     public function getSubscriptionStatus()
     {
         return $this->scopeConfig->getValue(
@@ -56,6 +62,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * @return mixed
+     */
     public function getAuthorizationRedirect()
     {
         return $this->scopeConfig->getValue(
@@ -64,6 +73,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * @return mixed
+     */
     public function getAuthorizeRedirectUrl()
     {
         return $this->scopeConfig->getValue(
@@ -105,6 +117,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * @return string
+     */
     public function getInstagramClientId()
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
@@ -113,6 +128,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         ));
     }
 
+    /**
+     * @return string
+     */
     public function getInstagramSecretKey()
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
@@ -121,6 +139,10 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         ));
     }
 
+    /**
+     * @param $type
+     * @return mixed
+     */
     public function getSocialConnectImage($type)
     {
         $configPath = "socialauth/{$type}_config/icon_login";
@@ -138,6 +160,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * @return string
+     */
     public function getFacebookAppId()
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
@@ -146,6 +171,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         ));
     }
 
+    /**
+     * @return string
+     */
     public function getFacebookAppSecret()
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
@@ -154,6 +182,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         ));
     }
 
+    /**
+     * @return string
+     */
     public function getGoogleClientId()
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
@@ -162,6 +193,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         ));
     }
 
+    /**
+     * @return string
+     */
     public function getGoogleSecret()
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
@@ -170,6 +204,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         ));
     }
 
+    /**
+     * @return string
+     */
     public function getLinkedinClientId()
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
@@ -178,6 +215,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         ));
     }
 
+    /**
+     * @return string
+     */
     public function getLinkedinSecret()
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
@@ -197,6 +237,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * @return string
+     */
     public function getTwitterConsumerKey()
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(
@@ -205,6 +248,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
         ));
     }
 
+    /**
+     * @return string
+     */
     public function getTwitterConsumerSecretKey()
     {
         return $this->encryptor->decrypt($this->scopeConfig->getValue(

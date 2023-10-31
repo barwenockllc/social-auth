@@ -78,10 +78,11 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Loging by customer
-     *
-     * @param \Magento\Customer\Model\Data\Customer $customer customer object
-     * @throws \Exception
+     * @param \Magento\Customer\Model\Data\Customer $customer
+     * @return void
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\State\InputMismatchException
      */
     public function loginByCustomer(\Magento\Customer\Model\Data\Customer $customer)
     {
@@ -93,6 +94,13 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
         $this->customerSession->loginById($customer->getId());
     }
 
+    /**
+     * @param $socialId
+     * @param $attributeName
+     * @return \Magento\Customer\Api\Data\CustomerSearchResultsInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     public function getCustomersBySocialId($socialId, $attributeName)
     {
         $this->searchCriteriaBuilder->addFilter('socialauth_' . $attributeName . '_id', $socialId);

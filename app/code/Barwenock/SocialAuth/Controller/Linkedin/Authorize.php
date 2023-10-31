@@ -2,7 +2,7 @@
 
 namespace Barwenock\SocialAuth\Controller\Linkedin;
 
-class Connect implements \Magento\Framework\App\ActionInterface
+class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
      * Connect social media type
@@ -291,7 +291,7 @@ class Connect implements \Magento\Framework\App\ActionInterface
      * @return void
      * @throws \Exception
      */
-    private function connectExistingAccount($customersByLinkedinId, $userInfo, $token)
+    protected function connectExistingAccount($customersByLinkedinId, $userInfo, $token)
     {
         $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
         if ($this->customerSession->isLoggedIn()) {

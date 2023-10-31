@@ -190,7 +190,7 @@ class Facebook
      * @return string
      * @throws \Exception
      */
-    private function base64UrlDecode($input)
+    protected function base64UrlDecode($input)
     {
         try {
             return $this->urlDecoder->decode(strtr($input, '-_', '+/'));

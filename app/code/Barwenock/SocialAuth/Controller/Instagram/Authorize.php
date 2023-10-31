@@ -2,7 +2,7 @@
 
 namespace Barwenock\SocialAuth\Controller\Instagram;
 
-class Connect implements \Magento\Framework\App\ActionInterface
+class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
      * Connect social media type
