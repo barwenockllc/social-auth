@@ -143,10 +143,10 @@ class Socials extends \Magento\Framework\View\Element\Template
         $popupData = [
             "width"=>'700',
             "height" => '300',
-            "twitterUrl" => $this->getRequestUrl('socialauth/twitter/authorize', ['mainw_protocol'=>'http']),
-            "linkedinUrl" => $this->getRequestUrl('socialauth/linkedin/authorize', ['mainw_protocol'=>'http']),
-            "googleUrl" => $this->getRequestUrl('socialauth/google/authorize', ['mainw_protocol'=>'http']),
-            "instagramUrl" => $this->getRequestUrl('socialauth/instagram/authorize', ['mainw_protocol'=>'http'])
+            "twitterUrl" => $this->getRequestUrl('socialauth/twitter/request', ['mainw_protocol'=>'http']),
+            "linkedinUrl" => $this->getRequestUrl('socialauth/linkedin/request', ['mainw_protocol'=>'http']),
+            "googleUrl" => $this->getRequestUrl('socialauth/google/request', ['mainw_protocol'=>'http']),
+            "instagramUrl" => $this->getRequestUrl('socialauth/instagram/request', ['mainw_protocol'=>'http'])
         ];
 
         return $this->serializer->serialize($popupData);
