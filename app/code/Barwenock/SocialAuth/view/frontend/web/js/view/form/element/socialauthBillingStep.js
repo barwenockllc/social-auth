@@ -85,7 +85,7 @@ define([
         },
 
         openSocialAuthPopup: function (url, width, height) {
-            var url = url + 'is_checkoutPageReq/1';
+            var url = url + 'checkoutPage/1';
             var screenX = typeof window.screenX !== 'undefined' ? window.screenX : window.screenLeft;
             var screenY = typeof window.screenY !== 'undefined' ? window.screenY : window.screenTop;
             var outerWidth = typeof window.outerWidth !== 'undefined' ? window.outerWidth : document.body.clientWidth;
@@ -133,7 +133,7 @@ define([
             var self = this;
             FB.login(function (response) {
                 if (response.status == 'connected') {
-                    document.location.href = socialauthConfig.facebookAuthUrl + 'is_checkoutPageReq/1';
+                    document.location.href = socialauthConfig.facebookAuthUrl + 'checkoutPage/1';
                 } else {
                     // User is not logged in
                     window.location.reload();

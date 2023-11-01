@@ -126,11 +126,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->cacheManagement->cleanCache();
 
         try {
-            $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+            $checkoutPage = $this->coreSession->getCheckoutPage();
             $isSecure = $this->store->isCurrentlySecure();
             $this->twitterConnect();
         } catch (\Exception $e) {
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addErrorMessage($e->getMessage());
             } else {
                 $this->coreSession->setErrorMsg($e->getMessage());
@@ -159,7 +159,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     protected function twitterConnect()
     {
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         $oauthToken = $this->request->getParam('oauth_token');
         $oauthVerifier = $this->request->getParam('oauth_verifier');
 
@@ -208,7 +208,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         self::CONNECT_TYPE
                     );
 
-                if (!$isCheckoutPageReq) {
+                if (!$checkoutPage) {
                     $this->messageManager->addSuccessMessage(
                         __(
                             'We have discovered you already have an account at our store.'.
@@ -260,7 +260,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 }
             }
 
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addSuccessMessage(
                     __(
                         'Your Twitter account is now connected to your new user account at our store.'
@@ -283,7 +283,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     public function checkAccountByTwitterId($customersByTwitterId)
     {
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($customersByTwitterId->getTotalCount()) {
             $this->isRegistor = false;
             foreach ($customersByTwitterId->getItems() as $customerInfo) {
@@ -292,7 +292,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $this->socialCustomerHelper->loginByCustomer($customer);
 
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addSuccessMessage(
                     __('You have successfully logged in using your %1 account.', __('Twitter'))
                 );
@@ -339,12 +339,12 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     protected function connectExistingAccount($customersByTwitterId, $userInfo, $token)
     {
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($this->customerSession->isLoggedIn()) {
             // Logged in user
             if ($customersByTwitterId->getTotalCount()) {
                 // Twitter account already connected to other account - deny
-                if (!$isCheckoutPageReq) {
+                if (!$checkoutPage) {
                     $this->messageManager->addNoticeMessage(__(
                         'Your %1 account is already connected to one of our store accounts.',
                         __('Twitter')
@@ -359,7 +359,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $this->socialCustomerHelper
                 ->connectBySocialId($customersByTwitterId, $userInfo['id'], $token, self::CONNECT_TYPE);
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addSuccessMessage(
                     __(
                         'Your %1 account is now connected to your store account.'

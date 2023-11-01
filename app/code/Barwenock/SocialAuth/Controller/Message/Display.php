@@ -26,16 +26,15 @@ class Display implements \Magento\Framework\App\ActionInterface
         $this->coreSession = $coreSession;
     }
 
-
     public function execute()
     {
         $resultJson = $this->resultJsonFactory->create();
-        $errorMsg = $this->coreSession->getErrorMsg();
-        $successMsg = $this->coreSession->getSuccessMsg();
+        $errorMessage = $this->coreSession->getErrorMsg();
+        $successMessage = $this->coreSession->getSuccessMsg();
 
         $this->coreSession->unsSuccessMsg();
         $this->coreSession->unsErrorMsg();
 
-        return $resultJson->setData(['status' => true, 'errorMsg'=> $errorMsg, 'successMsg' => $successMsg]);
+        return $resultJson->setData(['status' => true, 'errorMsg'=> $errorMessage, 'successMsg' => $successMessage]);
     }
 }

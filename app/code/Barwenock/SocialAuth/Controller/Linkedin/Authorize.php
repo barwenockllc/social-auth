@@ -119,13 +119,13 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     public function execute()
     {
         try {
-            $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+            $checkoutPage = $this->coreSession->getCheckoutPage();
             $isSecure = $this->store->isCurrentlySecure();
 
             $this->linkedinService->setParameters();
             $this->linkedinConnect();
         } catch (\Exception $e) {
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addErrorMessage($e->getMessage());
             } else {
                 $this->coreSession->setErrorMsg($e->getMessage());
@@ -154,7 +154,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     protected function linkedinConnect()
     {
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         $errorCode = $this->request->getParam('error');
         $code = $this->request->getParam('code');
         $state = $this->request->getParam('state');
@@ -192,7 +192,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 $this->socialCustomerHelper
                     ->connectBySocialId($customersByEmail, $userInfo->sub, $token, self::CONNECT_TYPE);
 
-                if (!$isCheckoutPageReq) {
+                if (!$checkoutPage) {
                     $this->messageManager->addSuccessMessage(
                         __(
                             'We have discovered you already have an account at our store.'
@@ -235,7 +235,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     );
             }
 
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addSuccessMessage(
                     __(
                         'Your %1 account is now connected to your new user account at our store.'.
@@ -293,10 +293,10 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     protected function connectExistingAccount($customersByLinkedinId, $userInfo, $token)
     {
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($this->customerSession->isLoggedIn()) {
             if ($customersByLinkedinId->getTotalCount()) {
-                if (!$isCheckoutPageReq) {
+                if (!$checkoutPage) {
                     $this->messageManager
                         ->addNoticeMessage(
                             __(
@@ -314,7 +314,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $this->socialCustomerHelper
                 ->connectBySocialId($customersByLinkedinId, $userInfo->sub, $token, self::CONNECT_TYPE);
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addSuccessMessage(
                     __(
                         'Your %1 account is now connected to your store account.'
@@ -347,8 +347,8 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     protected function checkAccountByLinkedinId($customersByLinkedinId)
     {
-        $isCheckoutPageReq = 0;
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = 0;
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($customersByLinkedinId->getTotalCount()) {
             $this->isRegistor = false;
 
@@ -358,7 +358,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $this->socialCustomerHelper->loginByCustomer($customer);
 
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager
                     ->addSuccessMessage(
                         __('You have successfully logged in using your %1 account.', __('LinkedIn'))

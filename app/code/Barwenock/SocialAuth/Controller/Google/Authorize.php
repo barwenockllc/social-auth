@@ -130,11 +130,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
         try {
             $isSecure = $this->store->isCurrentlySecure();
-            $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+            $checkoutPage = $this->coreSession->getCheckoutPage();
 
             $this->googleConnect();
         } catch (\Exception $e) {
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addErrorMessage($e->getMessage());
             } else {
                 $this->coreSession->setErrorMsg($e->getMessage());
@@ -163,7 +163,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     protected function googleConnect()
     {
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         $errorCode = $this->request->getParam('error');
         $code = $this->request->getParam('code');
         $state = $this->request->getParam('state');
@@ -200,7 +200,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
             $this->socialCustomerHelper
                 ->connectBySocialId($customersByEmail, $userInfo->id, $token, self::CONNECT_TYPE);
 
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addSuccessMessage(
                     __(
                         'We have discovered you already have an account at our store.'
@@ -219,7 +219,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         }
 
         if (empty($userInfo->given_name)) {
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addErrorMessage(
                     __('Sorry, could not retrieve your %1 first name. Please try again.', __('Google'))
                 );
@@ -231,7 +231,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         }
 
         if (empty($userInfo->family_name)) {
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addErrorMessage(
                     __('Sorry, could not retrieve your %2 last name. Please try again.', __('Google'))
                 );
@@ -255,8 +255,8 @@ class Authorize implements \Magento\Framework\App\ActionInterface
              );
         }
 
-        if (!$isCheckoutPageReq) {
-            $this->messageManager->addSuccess(
+        if (!$checkoutPage) {
+            $this->messageManager->addSuccessMessage(
                 __(
                     'Your %1 account is now connected to your new user account at our store.'
                     .' Now you can login using our %1 Connect button or using store account credentials'
@@ -317,12 +317,12 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     protected function connectExistingAccount($customersByGoogleId, $userInfo, $token)
     {
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($this->customerSession->isLoggedIn()) {
             // Logged in user
             if ($customersByGoogleId->getTotalCount()) {
                 // Google account already connected to other account - deny
-                if (!$isCheckoutPageReq) {
+                if (!$checkoutPage) {
                     $this->messageManager->addNoticeMessage(__(
                         'Your %1 account is already connected to one of our store accounts.',
                         __(
@@ -344,7 +344,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $this->socialCustomerHelper
                 ->connectBySocialId($customersByGoogleId, $userInfo->id, $token, self::CONNECT_TYPE);
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addSuccessMessage(
                     __(
                         'Your %1 account is now connected to your store account.'
@@ -373,7 +373,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     protected function checkAccountByGoogleId($customersByGoogleId)
     {
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($customersByGoogleId->getTotalCount()) {
             $this->isRegistor = false;
 
@@ -383,11 +383,10 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $this->socialCustomerHelper->loginByCustomer($customer);
 
-            if (!$isCheckoutPageReq) {
-                $this->messageManager
-                    ->addSuccessMessage(
-                        __('You have successfully logged in using your %1 account.', __('Google'))
-                    );
+            if (!$checkoutPage) {
+                $this->messageManager->addSuccessMessage(
+                    __('You have successfully logged in using your %1 account.', __('Google'))
+                );
             } else {
                 $this->coreSession->setSuccessMsg(
                     __('You have successfully logged in using your %1 account.', __('Google'))

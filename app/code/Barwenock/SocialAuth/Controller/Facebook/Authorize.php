@@ -62,6 +62,16 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     protected $facebookService;
 
     /**
+     * @var \Barwenock\SocialAuth\Helper\Authorize\Redirect
+     */
+    protected $authorizeRedirectHelper;
+
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    protected $url;
+
+    /**
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
      * @param \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager
@@ -72,6 +82,8 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @param \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper
      * @param \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
      * @param \Barwenock\SocialAuth\Service\Authorize\Facebook $facebookService
+     * @param \Barwenock\SocialAuth\Helper\Authorize\Redirect $authorizeRedirectHelper
+     * @param \Magento\Framework\UrlInterface $url
      */
     public function __construct(
         \Magento\Customer\Model\Session $customerSession,
@@ -83,7 +95,9 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
         \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate,
-        \Barwenock\SocialAuth\Service\Authorize\Facebook $facebookService
+        \Barwenock\SocialAuth\Service\Authorize\Facebook $facebookService,
+        \Barwenock\SocialAuth\Helper\Authorize\Redirect $authorizeRedirectHelper,
+        \Magento\Framework\UrlInterface $url
     ) {
         $this->customerSession = $customerSession;
         $this->coreSession = $coreSession;
@@ -95,15 +109,17 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->socialCustomerHelper = $socialCustomerHelper;
         $this->socialCustomerCreate = $socialCustomerCreate;
         $this->facebookService = $facebookService;
+        $this->authorizeRedirectHelper = $authorizeRedirectHelper;
+        $this->url = $url;
         $this->isRegistor = false;
     }
 
     public function execute()
     {
-        $isCheckoutPageReq = 0;
+        $checkoutPage = 0;
         $post = $this->request->getParams();
-        if (isset($post['is_checkoutPageReq']) && $post['is_checkoutPageReq'] == 1) {
-            $isCheckoutPageReq = 1;
+        if (isset($post['checkoutPage']) && $post['checkoutPage'] == 1) {
+            $checkoutPage = 1;
         }
 
         try {
@@ -119,7 +135,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             if ($facebookUser != null) {
                 if (!isset($facebookUser['email'])) {
-                    if (!$isCheckoutPageReq) {
+                    if (!$checkoutPage) {
                         $this->messageManager->addErrorMessage(
                             __(
                                 'There is some privacy with this Facebook Account,'
@@ -138,10 +154,18 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         ->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT);
                     return $resultRedirect->setPath('customer/account/login');
                 } else {
-                    $this->callBack($facebookUser, $isCheckoutPageReq);
+                    $this->callBack($facebookUser, $checkoutPage);
 
-                    return $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT)
-                        ->setPath('customer/account/login');
+                    $redirectPage = $this->authorizeRedirectHelper->getRedirectPage();
+                    if ($redirectPage != 'reload') {
+                        return $this->resultFactory->create(
+                            \Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT
+                        )->setPath($redirectPage);
+                    } else {
+                        return $this->resultFactory->create(
+                            \Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT
+                        )->setPath($this->url->getCurrentUrl());
+                    }
                 }
             } else {
                 return $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT)
@@ -174,11 +198,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
     /**
      * @param $facebookUser
-     * @param $isCheckoutPageReq
+     * @param $checkoutPage
      * @return void
      * @throws \Exception
      */
-    protected function callBack($facebookUser, $isCheckoutPageReq)
+    protected function callBack($facebookUser, $checkoutPage)
     {
         try {
             if (isset($facebookUser['id']) && $facebookUser['id']) {
@@ -186,7 +210,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     ->getCustomersBySocialId($facebookUser['id'], self::CONNECT_TYPE);
 
                 if ($customersByFacebookId->getTotalCount()) {
-                    if (!$isCheckoutPageReq) {
+                    if (!$checkoutPage) {
                         $this->messageManager->addSuccessMessage(
                             __(
                                 'You have successfully logged in using your facebook account'
@@ -203,7 +227,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($facebookUser['email']);
 
                     if ($customersByEmail->getTotalCount()) {
-                        if (!$isCheckoutPageReq) {
+                        if (!$checkoutPage) {
                             $this->messageManager->addSuccessMessage(
                                 __(
                                     'You have successfully logged in using your facebook account'
@@ -222,7 +246,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                             self::CONNECT_TYPE
                         );
 
-                        if (!$isCheckoutPageReq) {
+                        if (!$checkoutPage) {
                             $this->messageManager->addSuccessMessage(
                                 __(
                                     'Your %1 account is now connected to your store account.'
@@ -255,7 +279,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
                         $this->isRegistor = true;
 
-                        if (!$isCheckoutPageReq) {
+                        if (!$checkoutPage) {
                             $this->messageManager->addSuccessMessage(
                                 __(
                                     'Your %1 account is now connected to your new user account at our store.'

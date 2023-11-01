@@ -137,11 +137,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
         try {
             $isSecure = $this->store->isCurrentlySecure();
-            $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+            $checkoutPage = $this->coreSession->getCheckoutPage();
 
             $this->instagramConnect();
         } catch (\Exception $e) {
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addErrorMessage($e->getMessage());
             } else {
                 $this->coreSession->setErrorMsg($e->getMessage());
@@ -170,7 +170,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     protected function instagramConnect()
     {
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         $errorCode = $this->request->getParam('error');
         $code = $this->request->getParam('code');
         $state = $this->request->getParam('state');
@@ -209,7 +209,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 $this->socialCustomerHelper
                     ->connectBySocialId($customersByEmail, $userInfo->id, $token, self::CONNECT_TYPE);
 
-                if (!$isCheckoutPageReq) {
+                if (!$checkoutPage) {
                     $this->messageManager->addSuccessMessage(
                         __(
                             'We have discovered you already have an account at our store.'
@@ -262,7 +262,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 }
             }
 
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addNoticeMessage(
                     __(
                         'Since instagram doesn\'t support third-party access to your email address,'
@@ -291,12 +291,12 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     public function connectExistingAccount($customersByInstagramId, $userInfo, $token)
     {
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($this->customerSession->isLoggedIn()) {
             // Logged in user
             if ($customersByInstagramId->getTotalCount()) {
                 // Instagram account already connected to other account - deny
-                if (!$isCheckoutPageReq) {
+                if (!$checkoutPage) {
                     $this->messageManager->addNoticeMessage(__(
                         'Your %1 account is already connected to one of our store accounts.',
                         __('Instagram')
@@ -311,7 +311,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $this->socialCustomerHelper
                 ->connectBySocialId($customersByInstagramId, $userInfo->id, $token, self::CONNECT_TYPE);
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addSuccessMessage(
                     __(
                         'Your %1 account is now connected to your store account.'
@@ -338,7 +338,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      */
     protected function checkAccountByInstagramId($customersByInstagramId)
     {
-        $isCheckoutPageReq = $this->coreSession->getIsSocialSignupCheckoutPageReq();
+        $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($customersByInstagramId->getTotalCount()) {
             $this->isRegistor = false;
             foreach ($customersByInstagramId->getItems() as $customerInfo) {
@@ -347,7 +347,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $this->socialCustomerHelper->loginByCustomer($customer);
 
-            if (!$isCheckoutPageReq) {
+            if (!$checkoutPage) {
                 $this->messageManager->addSuccessMessage(
                     __('You have successfully logged in using your %1 account.', __('Instagram'))
                 );

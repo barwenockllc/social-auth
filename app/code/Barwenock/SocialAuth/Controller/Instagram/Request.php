@@ -85,8 +85,8 @@ class Request implements \Magento\Framework\App\ActionInterface
         $mainwProtocol = $this->request->getParam('mainw_protocol');
 
 
-        if (!empty($post['is_checkoutPageReq'])) {
-            $this->session->setIsSocialSignupCheckoutPageReq(1);
+        if (!empty($post['checkoutPage'])) {
+            $this->session->setCheckoutPage(1);
         }
 
         $this->session->setIsSecure($mainwProtocol);
