@@ -1,4 +1,11 @@
 <?php
+/**
+ * @author Barwenock
+ * @copyright Copyright (c) Barwenock
+ * @package Social Authorizes for Magento 2
+ */
+
+declare(strict_types=1);
 
 namespace Barwenock\SocialAuth\Block\SocialAuth;
 
@@ -106,12 +113,13 @@ class Socials extends \Magento\Framework\View\Element\Template
         $image = $this->configHelper->getSocialConnectImage($type);
 
         if (empty($image)) {
-            $image = $this->getViewFileUrl("Barwenock_SocialAuth::images/{$type}.png");
+            $image = $this->getViewFileUrl(sprintf('Barwenock_SocialAuth::images/%s.png', $type));
         } else {
             $mediaBaseUrl = $this->_storeManager->getStore()
                 ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
-            $image = $mediaBaseUrl . "socialauth/{$type}/" . $image;
+            $image = $mediaBaseUrl . sprintf('socialauth/%s/', $type) . $image;
         }
+
         return $image;
     }
 

@@ -1,4 +1,11 @@
 <?php
+/**
+ * @author Barwenock
+ * @copyright Copyright (c) Barwenock
+ * @package Social Authorizes for Magento 2
+ */
+
+declare(strict_types=1);
 
 namespace Barwenock\SocialAuth\Controller\Instagram;
 
@@ -77,7 +84,7 @@ class Request implements \Magento\Framework\App\ActionInterface
         }
 
         // CSRF protection
-        $csrf = hash('sha256', uniqid(rand(), true));
+        $csrf = hash('sha256', uniqid(strval(rand()), true));
         $this->session->setInstagramCsrf($csrf);
         $this->instagramService->setState($csrf);
 

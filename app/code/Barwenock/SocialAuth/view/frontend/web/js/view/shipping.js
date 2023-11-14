@@ -1,3 +1,10 @@
+<!--
+/**
+ * @author Barwenock
+ * @copyright Copyright (c) Barwenock
+ * @package Social Authorizes for Magento 2
+ */
+ -->
 define([
     'jquery',
     'mage/utils/wrapper',

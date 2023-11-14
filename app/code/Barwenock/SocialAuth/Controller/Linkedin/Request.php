@@ -1,4 +1,11 @@
 <?php
+/**
+ * @author Barwenock
+ * @copyright Copyright (c) Barwenock
+ * @package Social Authorizes for Magento 2
+ */
+
+declare(strict_types=1);
 
 namespace Barwenock\SocialAuth\Controller\Linkedin;
 
@@ -75,7 +82,7 @@ class Request implements \Magento\Framework\App\ActionInterface
             return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
         }
 
-        $csrf = hash('sha256', uniqid(rand(), true));
+        $csrf = hash('sha256', uniqid(strval(rand()), true));
         $this->session->setLinkedinCsrf($csrf);
 
         $post = $this->request->getParams();
