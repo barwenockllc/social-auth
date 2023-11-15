@@ -11,8 +11,16 @@ namespace Barwenock\SocialAuth\Model\Plugin\ResourceModel\Customer;
 
 class Grid
 {
+    /**
+     * Customer Grid Table
+     * @var string
+     */
     protected const CUSTOMER_GRID_TABLE = 'customer_grid_flat';
 
+    /**
+     * Login Type Table
+     * @var string
+     */
     protected const LOGIN_TYPE_TABLE = 'socialauth_login_type';
 
     /**
@@ -39,8 +47,10 @@ class Grid
                     );
                 }
             }
+
             $collection->getSelect()->setPart(\Magento\Framework\DB\Select::WHERE, $wh)->group('main_table.entity_id');
         }
+
         return $collection;
     }
 }

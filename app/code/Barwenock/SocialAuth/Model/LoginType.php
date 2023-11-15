@@ -13,6 +13,9 @@ class LoginType extends \Magento\Framework\Model\AbstractModel implements
     \Magento\Framework\DataObject\IdentityInterface,
     \Barwenock\SocialAuth\Api\Data\LoginTypeInterface
 {
+    /**
+     * @var string
+     */
     public const CACHE_TAG = 'socialauth_login_type';
 
     /**

@@ -157,7 +157,7 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
 
             return $this->customerRepository->getList($this->searchCriteriaBuilder->create());
         } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage());
+            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 }

@@ -13,10 +13,24 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
      * Connect social media type
+     * @var string
      */
     protected const CONNECT_TYPE = 'google';
 
-    protected $isRegistor;
+    /**
+     * @var bool
+     */
+    protected $isRegistor = true;
+
+    /**
+     * @var string
+     */
+    protected $referer;
+
+    /**
+     * @var string
+     */
+    protected $flag;
 
     /**
      * @var \Magento\Customer\Model\Session
@@ -114,7 +128,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         \Magento\Framework\UrlInterface $url,
         \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
     ) {
-        $this->isRegistor = true;
         $this->customerSession = $customerSession;
         $this->socialCustomerHelper = $socialCustomerHelper;
         $this->eavAttribute = $eavAttribute;
@@ -140,11 +153,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
             $checkoutPage = $this->coreSession->getCheckoutPage();
 
             $this->googleConnect();
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             if (!$checkoutPage) {
-                $this->messageManager->addErrorMessage($e->getMessage());
+                $this->messageManager->addErrorMessage($exception->getMessage());
             } else {
-                $this->coreSession->setErrorMsg($e->getMessage());
+                $this->coreSession->setErrorMsg($exception->getMessage());
             }
         }
 
@@ -182,7 +195,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $attributeCodes = ['socialauth_google_id', 'socialauth_google_token'];
         foreach ($attributeCodes as $attributeCode) {
             $attributeId = $this->eavAttribute->getIdByCode('customer', $attributeCode);
-            if (!$attributeId) {
+            if ($attributeId === 0) {
                 throw new \Magento\Framework\Exception\LocalizedException(
                     __('Attribute %1 does not exist', $attributeCode)
                 );
@@ -203,7 +216,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($userInfo->email);
 
-        if ($customersByEmail->getTotalCount()) {
+        if ($customersByEmail->getTotalCount() !== 0) {
             $this->socialCustomerHelper
                 ->connectBySocialId($customersByEmail, $userInfo->id, $token, self::CONNECT_TYPE);
 
@@ -222,6 +235,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     __('Google')
                 ));
             }
+
             return;
         }
 
@@ -248,8 +262,9 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 );
             }
         }
-            $customersCountByGoogleId = $customersByGoogleId->getTotalCount();
-            $customersCountByEmail = $customersByEmail->getTotalCount();
+
+        $customersCountByGoogleId = $customersByGoogleId->getTotalCount();
+        $customersCountByEmail = $customersByEmail->getTotalCount();
 
         if (!$customersCountByGoogleId && !$customersCountByEmail) {
              $this->socialCustomerCreate->create(
@@ -288,9 +303,9 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @return bool
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function isRequestValid($errorCode, $code, $state)
+    protected function isRequestValid($errorCode, $code, $state): bool
     {
-        if (!($errorCode || $code) && !$state) {
+        if (!$errorCode && !$code && !$state) {
             // Direct route access - deny
             return false;
         }
@@ -309,6 +324,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 $this->flag = "noaccess";
                 return false;
             }
+
             return false;
         }
 
@@ -346,6 +362,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         )
                     );
                 }
+
                 return;
             }
 
@@ -378,7 +395,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @return bool
      * @throws \Exception
      */
-    protected function checkAccountByGoogleId($customersByGoogleId)
+    protected function checkAccountByGoogleId($customersByGoogleId): bool
     {
         $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($customersByGoogleId->getTotalCount()) {
@@ -399,8 +416,10 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     __('You have successfully logged in using your %1 account.', __('Google'))
                 );
             }
+
             return true;
         }
+
         return false;
     }
 }

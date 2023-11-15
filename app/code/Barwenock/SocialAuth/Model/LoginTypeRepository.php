@@ -68,11 +68,12 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
     {
         $loginType = $this->loginTypeFactory->create();
         $this->loginTypeResource->load($loginType, $entityId);
-        if (!$loginType->getEntityId()) {
+        if ($loginType->getEntityId() === 0) {
             throw new \Magento\Framework\Exception\NoSuchEntityException(
-                __('Requested login type doesn\'t exist')
+                __("Requested login type doesn't exist")
             );
         }
+
         return $loginType;
     }
 
@@ -97,6 +98,7 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
         } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\CouldNotSaveException(__($exception->getMessage()));
         }
+
         return $loginType;
     }
 
@@ -125,13 +127,14 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
      * @inheritDoc
      * @throws \Magento\Framework\Exception\CouldNotDeleteException
      */
-    public function delete(\Barwenock\SocialAuth\Api\Data\LoginTypeInterface $loginType)
+    public function delete(\Barwenock\SocialAuth\Api\Data\LoginTypeInterface $loginType): bool
     {
         try {
             $this->loginTypeResource->delete($loginType);
         } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\CouldNotDeleteException(__($exception->getMessage()));
         }
+
         return true;
     }
 

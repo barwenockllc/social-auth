@@ -83,7 +83,7 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
      */
     public function getSocialsConfiguration()
     {
-        $config = [
+        return [
             'moduleStatus' => $this->adminConfig->getModuleStatus(),
             'isCheckoutOn' => $this->isCheckoutPageOn(),
             'socialStatus' => $this->isAnySocialEnabled(),
@@ -116,14 +116,12 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
             'isCustomerLoggedIn' => $this->session->isLoggedIn(),
             'getMessagesUrl' => $this->url->getUrl('socialauth/message/display'),
         ];
-
-        return $config;
     }
 
     /**
      * @return bool
      */
-    public function isAnySocialEnabled()
+    public function isAnySocialEnabled(): bool
     {
         // Define an array of status values to check
         $statuses = [
@@ -148,10 +146,10 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
         $image = $this->adminConfig->getSocialConnectImage($socialType);
 
         if (empty($image)) {
-            return $this->asset->getUrl("Barwenock_SocialAuth::images/$socialType.png");
+            return $this->asset->getUrl(sprintf('Barwenock_SocialAuth::images/%s.png', $socialType));
         } else {
             return $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA)
-                . "socialauth/$socialType/" . $image;
+                . sprintf('socialauth/%s/', $socialType) . $image;
         }
     }
 

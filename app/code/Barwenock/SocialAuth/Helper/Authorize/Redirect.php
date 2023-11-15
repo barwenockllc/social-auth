@@ -13,21 +13,25 @@ class Redirect extends \Magento\Framework\App\Helper\AbstractHelper
 {
     /**
      * Home url
+     * @var string
      */
     protected const HOME_PATH = 'home';
 
     /**
      * Customer account path
+     * @var string
      */
     protected const CUSTOMER_ACCOUNT_PATH = 'customer/account';
 
     /**
      * Privacy policy path
+     * @var string
      */
     protected const PRIVACY_POLICY_PATH = 'privacy-policy-cookie-restriction-mode';
 
     /**
      * No route path
+     * @var string
      */
     protected const NO_ROUTE_PATH = 'noroute';
 
@@ -85,6 +89,7 @@ class Redirect extends \Magento\Framework\App\Helper\AbstractHelper
             default:
                 $redirect = $this->url->getUrl(self::CUSTOMER_ACCOUNT_PATH);
         }
+
         return $redirect;
     }
 }

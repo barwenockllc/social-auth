@@ -11,8 +11,22 @@ namespace Barwenock\SocialAuth\Model\Config\Source;
 
 class Display implements \Magento\Framework\Data\OptionSourceInterface
 {
+    /**
+     * Login Option
+     * @var string
+     */
     const DISPLAY_ON_LOGIN = 'customer_account_login';
+
+    /**
+     * Register Option
+     * @var string
+     */
     const DISPLAY_ON_REGISTER = 'customer_account_create';
+
+    /**
+     * Checkout Option
+     * @var string
+     */
     const DISPLAY_ON_CHECKOUT = 'checkout_index_index';
 
     /**

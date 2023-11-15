@@ -11,9 +11,28 @@ namespace Barwenock\SocialAuth\Service\Authorize;
 
 class Linkedin
 {
+    /**
+     * Redirect Route URI
+     * @var string
+     */
     protected const REDIRECT_URI_ROUTE = 'socialauth/linkedin/authorize';
+
+    /**
+     * Oauth Service URI
+     * @var string
+     */
     protected const OAUTH2_SERVICE_URI = 'https://api.linkedin.com';
+
+    /**
+     * Oauth Auth URI
+     * @var string
+     */
     protected const OAUTH2_AUTH_URI = 'https://www.linkedin.com/oauth/v2/authorization';
+
+    /**
+     * Oauth Token URI
+     * @var string
+     */
     protected const OAUTH2_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken';
 
     /**
@@ -35,6 +54,23 @@ class Linkedin
      * Token
      */
     protected $token = null;
+
+    /**
+     * @var string
+     */
+    protected $clientId;
+
+    /**
+     * @var string
+     */
+    protected $clientSecret;
+
+    /**
+     * @var string
+     */
+    protected $protocol;
+
+
 
     /**
      * @var \Magento\Store\Model\Store
@@ -82,7 +118,7 @@ class Linkedin
      */
     public function setParameters($params = [])
     {
-        if (!$this->configHelper->getLinkedinStatus()) {
+        if ($this->configHelper->getLinkedinStatus() === 0) {
             return;
         }
 
@@ -104,7 +140,7 @@ class Linkedin
      *
      * @return string
      */
-    public function createRequestUrl()
+    public function createRequestUrl(): string
     {
         $queryParams = [
             'response_type' => 'code',
@@ -178,14 +214,14 @@ class Linkedin
             case 'GET':
                 $this->curl->addHeader('Authorization', 'Bearer ' . $params['oauth2_access_token']);
                 $this->curl->addHeader('Connection', 'Keep-Alive');
-                $this->curl->get($url, $params);
+                $this->curl->get($url);
                 break;
             case 'POST':
                 $this->curl->addHeader('Content-Type', 'application/x-www-form-urlencoded');
                 $this->curl->post($url, $params);
                 break;
             case 'DELETE':
-                $this->curl->get($url, $params);
+                $this->curl->get($url);
                 break;
             default:
                 throw new \Magento\Framework\Exception\LocalizedException(
@@ -273,6 +309,7 @@ class Linkedin
         if (empty($this->token)) {
             $this->fetchAccessToken();
         }
+
         return $this->token->access_token;
     }
 }

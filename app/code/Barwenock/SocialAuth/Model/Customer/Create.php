@@ -113,7 +113,9 @@ class Create
             $this->customerSession->loginById($this->customerModel->getId());
         } catch (\Exception $exception) {
             throw new \Exception(
-                'Exception happened during authorization: ' . $exception->getMessage()
+                'Exception happened during authorization: ' . $exception->getMessage(),
+                $exception->getCode(),
+                $exception
             );
         }
     }

@@ -11,9 +11,28 @@ namespace Barwenock\SocialAuth\Service\Authorize;
 
 class Instagram
 {
+    /**
+     * Redirect Route URI
+     * @var string
+     */
     public const REDIRECT_URI_ROUTE = 'socialauth/instagram/authorize';
+
+    /**
+     * Oauth Service URI
+     * @var string
+     */
     public const OAUTH2_SERVICE_URI = 'https://graph.instagram.com/';
+
+    /**
+     * Oauth Auth URI
+     * @var string
+     */
     public const OAUTH2_AUTH_URI = 'https://api.instagram.com/oauth/authorize';
+
+    /**
+     * Oauth Token URI
+     * @var string
+     */
     public const OAUTH2_TOKEN_URI = 'https://api.instagram.com/oauth/access_token';
 
     /**
@@ -35,6 +54,11 @@ class Instagram
      * Token
      */
     protected $token = null;
+
+    /**
+     * @var string
+     */
+    protected $protocol;
 
     /**
      * @var \Magento\Store\Model\Store
@@ -89,7 +113,7 @@ class Instagram
      */
     public function setParameters($params = [])
     {
-        if (!$this->configHelper->getInstagramStatus()) {
+        if ($this->configHelper->getInstagramStatus() === 0) {
             return;
         }
 
@@ -108,7 +132,7 @@ class Instagram
      *
      * @return string
      */
-    public function createRequestUrl()
+    public function createRequestUrl(): string
     {
         $queryParams = [
             'response_type' => 'code',
@@ -179,14 +203,14 @@ class Instagram
         switch ($method) {
             case 'GET':
                 $this->curl->addHeader('Connection', 'Keep-Alive');
-                $this->curl->get($url, $params);
+                $this->curl->get($url);
                 break;
             case 'POST':
                 $this->curl->addHeader('Content-Type', 'application/x-www-form-urlencoded');
                 $this->curl->post($url, $params);
                 break;
             case 'DELETE':
-                $this->curl->get($url, $params);
+                $this->curl->get($url);
                 break;
             default:
                 throw new \Magento\Framework\Exception\LocalizedException(
@@ -275,6 +299,7 @@ class Instagram
         if (empty($this->token)) {
             $this->fetchAccessToken();
         }
+
         return $this->token->access_token;
     }
 }

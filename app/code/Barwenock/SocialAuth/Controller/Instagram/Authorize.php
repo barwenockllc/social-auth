@@ -13,10 +13,24 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
      * Connect social media type
+     * @var string
      */
     protected const CONNECT_TYPE = 'instagram';
 
-    protected $isRegistor;
+    /**
+     * @var bool
+     */
+    protected $isRegistor = true;
+
+    /**
+     * @var string
+     */
+    protected $referer;
+
+    /**
+     * @var string
+     */
+    protected $flag;
 
     /**
      * @var \Magento\Customer\Model\Session
@@ -120,7 +134,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Framework\Controller\ResultFactory $resultFactory
     ) {
-        $this->isRegistor = true;
         $this->customerSession = $customerSession;
         $this->eavAttribute = $eavAttribute;
         $this->store = $store;
@@ -147,11 +160,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
             $checkoutPage = $this->coreSession->getCheckoutPage();
 
             $this->instagramConnect();
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             if (!$checkoutPage) {
-                $this->messageManager->addErrorMessage($e->getMessage());
+                $this->messageManager->addErrorMessage($exception->getMessage());
             } else {
-                $this->coreSession->setErrorMsg($e->getMessage());
+                $this->coreSession->setErrorMsg($exception->getMessage());
             }
         }
 
@@ -190,7 +203,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
             $attributeCodes = ['socialauth_instagram_id', 'socialauth_instagram_token'];
             foreach ($attributeCodes as $attributeCode) {
                 $attributeId = $this->eavAttribute->getIdByCode('customer', $attributeCode);
-                if (!$attributeId) {
+                if ($attributeId === 0) {
                     throw new \Magento\Framework\Exception\LocalizedException(
                         __('Attribute %1 does not exist', $attributeCode)
                     );
@@ -212,7 +225,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
             $customersByEmail = $this->socialCustomerHelper
                 ->getCustomersByEmail($userInfo->username . '@instagram-user.com');
 
-            if ($customersByEmail->getTotalCount()) {
+            if ($customersByEmail->getTotalCount() !== 0) {
                 $this->socialCustomerHelper
                     ->connectBySocialId($customersByEmail, $userInfo->id, $token, self::CONNECT_TYPE);
 
@@ -231,6 +244,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         __('Instagram')
                     ));
                 }
+
                 return;
             }
 
@@ -265,14 +279,14 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         self::CONNECT_TYPE
                     );
                 } catch (\Exception $exception) {
-                    throw new \Exception($exception->getMessage());
+                    throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
                 }
             }
 
             if (!$checkoutPage) {
                 $this->messageManager->addNoticeMessage(
                     __(
-                        'Since instagram doesn\'t support third-party access to your email address,'
+                        "Since instagram doesn't support third-party access to your email address,"
                         .' we were unable to send you your store account credentials.'
                         .' To be able to login using store account credentials you will need to update your'
                         .' email address and password using  Edit Account Information.'
@@ -280,7 +294,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 );
             } else {
                 $this->coreSession->setSuccessMsg(__(
-                    'Since instagram doesn\'t support third-party access to your email address,'
+                    "Since instagram doesn't support third-party access to your email address,"
                     .' we were unable to send you your store account credentials.'
                     .' To be able to login using store account credentials you will need to update your'
                     .' email address and password using  Edit Account Information.'
@@ -313,6 +327,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         __('Your %1 account is already connected to one of our store accounts.', __('Instagram'))
                     );
                 }
+
                 return;
             }
 
@@ -343,7 +358,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @return bool
      * @throws \Exception
      */
-    protected function checkAccountByInstagramId($customersByInstagramId)
+    protected function checkAccountByInstagramId($customersByInstagramId): bool
     {
         $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($customersByInstagramId->getTotalCount()) {
@@ -363,8 +378,10 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     __('You have successfully logged in using your %1 account.', __('Instagram'))
                 );
             }
+
             return true;
         }
+
         return false;
     }
 
@@ -375,9 +392,9 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @return bool
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function isRequestValid($errorCode, $code, $state)
+    protected function isRequestValid($errorCode, $code, $state): bool
     {
-        if (!($errorCode || $code) && !$state) {
+        if (!$errorCode && !$code && !$state) {
             return false;
         }
 
@@ -395,6 +412,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 $this->flag = "noaccess";
                 return false;
             }
+
             return false;
         }
 

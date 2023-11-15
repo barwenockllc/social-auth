@@ -78,11 +78,11 @@ class Request implements \Magento\Framework\App\ActionInterface
         $this->session->unsIsSocialSignupCheckoutPageReq();
         $this->linkedinService->setParameters();
 
-        if (!$this->configHelper->getLinkedinStatus()) {
+        if ($this->configHelper->getLinkedinStatus() === 0) {
             return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
         }
 
-        $csrf = hash('sha256', uniqid(strval(rand()), true));
+        $csrf = hash('sha256', uniqid((string) rand(), true));
         $this->session->setLinkedinCsrf($csrf);
 
         $post = $this->request->getParams();

@@ -13,10 +13,24 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
      * Connect social media type
+     * @var string
      */
     protected const CONNECT_TYPE = 'linkedin';
 
-    protected $isRegistor;
+    /**
+     * @var bool
+     */
+    protected $isRegistor = true;
+
+    /**
+     * @var string
+     */
+    protected $referer;
+
+    /**
+     * @var string
+     */
+    protected $flag;
 
     /**
      * @var \Magento\Customer\Model\Session
@@ -109,7 +123,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Framework\Controller\ResultFactory $resultFactory
     ) {
-        $this->isRegistor = true;
         $this->customerSession = $customerSession;
         $this->socialCustomerHelper = $socialCustomerHelper;
         $this->eavAttribute = $eavAttribute;
@@ -131,11 +144,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $this->linkedinService->setParameters();
             $this->linkedinConnect();
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             if (!$checkoutPage) {
-                $this->messageManager->addErrorMessage($e->getMessage());
+                $this->messageManager->addErrorMessage($exception->getMessage());
             } else {
-                $this->coreSession->setErrorMsg($e->getMessage());
+                $this->coreSession->setErrorMsg($exception->getMessage());
             }
         }
 
@@ -174,7 +187,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
             $attributeCodes = ['socialauth_linkedin_id', 'socialauth_linkedin_token'];
             foreach ($attributeCodes as $attributeCode) {
                 $attributeId = $this->eavAttribute->getIdByCode('customer', $attributeCode);
-                if (!$attributeId) {
+                if ($attributeId === 0) {
                     throw new \Magento\Framework\Exception\LocalizedException(
                         __('Attribute %1 does not exist', $attributeCode)
                     );
@@ -195,7 +208,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($userInfo->email);
 
-            if ($customersByEmail->getTotalCount()) {
+            if ($customersByEmail->getTotalCount() !== 0) {
                 $this->socialCustomerHelper
                     ->connectBySocialId($customersByEmail, $userInfo->sub, $token, self::CONNECT_TYPE);
 
@@ -214,6 +227,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         __('LinkedIn')
                     ));
                 }
+
                 return;
             }
 
@@ -228,6 +242,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     __('Sorry, could not retrieve your %1 last name. Please try again.', __('LinkedIn'))
                 );
             }
+
             $customerCountByLinkedinId = $customersByLinkedinId->getTotalCount();
             $customerCountByEmail = $customersByEmail->getTotalCount();
 
@@ -270,9 +285,9 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @param $state
      * @return bool
      */
-    protected function isRequestValid($errorCode, $code, $state)
+    protected function isRequestValid($errorCode, $code, $state): bool
     {
-        if (!($errorCode || $code) && !$state) {
+        if (!$errorCode && !$code && !$state) {
             // Direct route access - deny
             return false;
         }
@@ -285,6 +300,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 $this->flag = "noaccess";
                 return false;
             }
+
             return false;
         }
 
@@ -316,6 +332,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         __('Your %1 account is already connected to one of our store accounts.', __('LinkedIn'))
                     );
                 }
+
                 return;
             }
 
@@ -352,7 +369,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @return bool
      * @throws \Exception
      */
-    protected function checkAccountByLinkedinId($customersByLinkedinId)
+    protected function checkAccountByLinkedinId($customersByLinkedinId): bool
     {
         $checkoutPage = 0;
         $checkoutPage = $this->coreSession->getCheckoutPage();
@@ -375,8 +392,10 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     __('You have successfully logged in using your %1 account.', __('LinkedIn'))
                 );
             }
+
             return true;
         }
+
         return false;
     }
 }

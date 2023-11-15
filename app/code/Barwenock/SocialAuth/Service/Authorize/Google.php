@@ -11,9 +11,28 @@ namespace Barwenock\SocialAuth\Service\Authorize;
 
 class Google
 {
+    /**
+     * Redirect Route
+     * @var string
+     */
     protected const REDIRECT_URI_ROUTE = 'socialauth/google/authorize';
+
+    /**
+     * Oauth Token URI
+     * @var string
+     */
     protected const OAUTH2_TOKEN_URI = 'https://accounts.google.com/o/oauth2/token';
+
+    /**
+     * Oauth Auth URI
+     * @var string
+     */
     protected const OAUTH2_AUTH_URI = 'https://accounts.google.com/o/oauth2/auth';
+
+    /**
+     * Oauth Service URI
+     * @var string
+     */
     protected const OAUTH2_SERVICE_URI = 'https://www.googleapis.com/oauth2/v2';
 
     /**
@@ -35,9 +54,19 @@ class Google
     protected $prompt = 'auto';
 
     /**
+     * @var string
+     */
+    protected $protocol;
+
+    /**
      * RedirectUri
      */
     protected $redirectUri = null;
+
+    /**
+     * Token
+     */
+    protected $token;
 
     /**
      * State
@@ -105,7 +134,7 @@ class Google
      */
     public function setParameters($params = [])
     {
-        if (!$this->configHelper->getGoogleStatus()) {
+        if ($this->configHelper->getGoogleStatus() === 0) {
             return;
         }
 
@@ -126,7 +155,7 @@ class Google
      *
      * @return string
      */
-    public function createRequestUrl()
+    public function createRequestUrl(): string
     {
         $queryParams = [
             'response_type' => 'code',
@@ -255,7 +284,7 @@ class Google
         switch ($method) {
             case 'GET':
                 $this->curl->addHeader('Authorization', 'Bearer ' . $params['access_token']);
-                $this->curl->get($url, $params);
+                $this->curl->get($url);
                 break;
             case 'POST':
                 $this->curl->post($url, $params);

@@ -81,11 +81,11 @@ class Request implements \Magento\Framework\App\ActionInterface
         $this->session->unsIsSocialSignupCheckoutPageReq();
         $this->googleService->setParameters();
 
-        if (!$this->configHelper->getGoogleStatus()) {
+        if ($this->configHelper->getGoogleStatus() === 0) {
             return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
         }
 
-        $csrf = hash('sha256', uniqid(strval(rand()), true));
+        $csrf = hash('sha256', uniqid((string) rand(), true));
         $this->session->setGoogleCsrf($csrf);
         $this->googleService->setState($csrf);
 

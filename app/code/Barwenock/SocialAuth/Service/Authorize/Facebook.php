@@ -63,7 +63,7 @@ class Facebook
             $response = $this->curl->getBody();
             return $this->json->unserialize($response);
         } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage());
+            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 
@@ -72,7 +72,7 @@ class Facebook
      * @param $facebookAppSecretKey
      * @return string
      */
-    public function buildUserDataUrl($cookie, $facebookAppSecretKey)
+    public function buildUserDataUrl($cookie, $facebookAppSecretKey): string
     {
         $appsecretProof= hash_hmac('sha256', $cookie['access_token'], $facebookAppSecretKey);
         $base_url = 'https://graph.facebook.com/v18.0/me?appsecret_proof=';
@@ -107,11 +107,16 @@ class Facebook
             $signedRequest = $this->parseSignedRequest($cookieData, $appSecret);
 
             if (!empty($signedRequest)) {
-                $base = "https://graph.facebook.com/v4.0/oauth/access_token?client_id=$appId";
+                $base = sprintf('https://graph.facebook.com/v4.0/oauth/access_token?client_id=%s', $appId);
                 $signedCode = $signedRequest['code'];
 
                 $accessTokenResponse = $this
-                    ->getFacebookUserData("$base&redirect_uri=&client_secret=$appSecret&code=$signedCode");
+                    ->getFacebookUserData(sprintf(
+                        '%s&redirect_uri=&client_secret=%s&code=%s',
+                        $base,
+                        $appSecret,
+                        $signedCode
+                    ));
 
                 if (!empty($accessTokenResponse['access_token'])) {
                     $signedRequest['access_token'] = $accessTokenResponse['access_token'];
@@ -119,8 +124,9 @@ class Facebook
                 }
             }
         } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage());
+            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
         }
+
         return $signedRequest;
     }
 
@@ -158,7 +164,7 @@ class Facebook
                 }
             }
         } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage());
+            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
         }
 
         return [];
@@ -186,9 +192,10 @@ class Facebook
             if ($sig !== $expectedSig) {
                 return null;
             }
+
             return $data;
         } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage());
+            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 
@@ -202,7 +209,7 @@ class Facebook
         try {
             return $this->urlDecoder->decode(strtr($input, '-_', '+/'));
         } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage());
+            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 }

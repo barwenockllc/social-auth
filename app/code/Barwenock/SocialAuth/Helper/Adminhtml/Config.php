@@ -152,7 +152,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getSocialConnectImage($type)
     {
-        $configPath = "socialauth/{$type}_config/icon_login";
+        $configPath = sprintf('socialauth/%s_config/icon_login', $type);
         return $this->scopeConfig->getValue($configPath, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
     }
 

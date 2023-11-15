@@ -79,12 +79,12 @@ class Request implements \Magento\Framework\App\ActionInterface
         $this->session->unsIsSocialSignupCheckoutPageReq();
         $this->instagramService->setParameters();
 
-        if (!$this->configHelper->getInstagramStatus()) {
+        if ($this->configHelper->getInstagramStatus() === 0) {
             return $this->redirect->setRedirect($this->url->getUrl('noroute'), 301);
         }
 
         // CSRF protection
-        $csrf = hash('sha256', uniqid(strval(rand()), true));
+        $csrf = hash('sha256', uniqid((string) rand(), true));
         $this->session->setInstagramCsrf($csrf);
         $this->instagramService->setState($csrf);
 

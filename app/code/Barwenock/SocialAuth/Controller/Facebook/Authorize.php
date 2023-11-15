@@ -13,10 +13,14 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
      * Connect social media type
+     * @var string
      */
-    const CONNECT_TYPE = 'facebook';
+    protected const CONNECT_TYPE = 'facebook';
 
-    protected $isRegistor;
+    /**
+     * @var bool
+     */
+    protected $isRegistor = false;
 
     /**
      * @var \Magento\Customer\Model\Session
@@ -118,7 +122,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->facebookService = $facebookService;
         $this->authorizeRedirectHelper = $authorizeRedirectHelper;
         $this->url = $url;
-        $this->isRegistor = false;
     }
 
     public function execute()
@@ -142,7 +145,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             if ($facebookUser != null) {
                 if (!isset($facebookUser['email'])) {
-                    if (!$checkoutPage) {
+                    if ($checkoutPage === 0) {
                         $this->messageManager->addErrorMessage(
                             __(
                                 'There is some privacy with this Facebook Account,'
@@ -157,6 +160,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                             )
                         );
                     }
+
                     $resultRedirect = $this->resultFactory
                         ->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT);
                     return $resultRedirect->setPath('customer/account/login');
@@ -179,7 +183,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     ->setPath('customer/account/login');
             }
         } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage());
+            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 
@@ -197,7 +201,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 return $this->facebookService->getNewFacebookCookie($appId, $appSecret);
             }
         } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage());
+            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
         }
 
         return $this->facebookService->getOldFacebookCookie($appId, $appSecret);
@@ -216,7 +220,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 $customersByFacebookId = $this->socialCustomerHelper
                     ->getCustomersBySocialId($facebookUser['id'], self::CONNECT_TYPE);
 
-                if ($customersByFacebookId->getTotalCount()) {
+                if ($customersByFacebookId->getTotalCount() !== 0) {
                     if (!$checkoutPage) {
                         $this->messageManager->addSuccessMessage(
                             __(
@@ -233,7 +237,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 } else {
                     $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($facebookUser['email']);
 
-                    if ($customersByEmail->getTotalCount()) {
+                    if ($customersByEmail->getTotalCount() !== 0) {
                         if (!$checkoutPage) {
                             $this->messageManager->addSuccessMessage(
                                 __(
@@ -307,7 +311,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 }
             }
         } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage());
+            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
         }
     }
 }

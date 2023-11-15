@@ -16,7 +16,7 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      *
      * @return void
      */
-    public function _construct()
+    protected function _construct()
     {
         $this->_init(
             \Barwenock\SocialAuth\Model\LoginType::class,

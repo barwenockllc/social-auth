@@ -13,6 +13,7 @@ class TypeUserLogin extends \Magento\Ui\Component\Listing\Columns\Column
 {
     /**
      * User default type
+     * @var string
      */
     public const DEFAULT = 'Default';
 
@@ -66,6 +67,7 @@ class TypeUserLogin extends \Magento\Ui\Component\Listing\Columns\Column
                 $item[$this->getData('name')] = $type;
             }
         }
+
         return $dataSource;
     }
 }

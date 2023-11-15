@@ -11,10 +11,34 @@ namespace Barwenock\SocialAuth\Service\Authorize;
 
 class Twitter
 {
+    /**
+     * Request Token URL
+     * @var string
+     */
     protected const REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token';
+
+    /**
+     * Access Token URL
+     * @var string
+     */
     protected const ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token';
+
+    /**
+     * Authenticate URL
+     * @var string
+     */
     protected const AUTHENTICATE_URL = 'https://api.twitter.com/oauth/authenticate';
+
+    /**
+     * Account Verify URL
+     * @var string
+     */
     protected const ACCOUNT_VERIFY_URL = 'https://api.twitter.com/1.1/account/verify_credentials.json';
+
+    /**
+     * Redirect Route URL
+     * @var string
+     */
     protected const REDIRECT_URI_ROUTE = 'socialauth/twitter/authorize';
 
     /**
@@ -63,6 +87,7 @@ class Twitter
         $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
 
         $this->curl->post($requestTokenUrl, []);
+
         $response = $this->curl->getBody();
 
         // Parse the response to extract the access token and secret
@@ -87,6 +112,7 @@ class Twitter
         $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
 
         $this->curl->post($accessTokenUrl, []);
+
         $response = $this->curl->getBody();
 
         // Parse the response to extract the access token and secret
@@ -121,7 +147,7 @@ class Twitter
      * @param $oauthTokenSecret
      * @return string
      */
-    protected function authorization($additionalParams, $url, $method = 'GET', $oauthTokenSecret = null)
+    protected function authorization($additionalParams, $url, $method = 'GET', $oauthTokenSecret = null): string
     {
         $oauthParams = [
             'oauth_consumer_key' => $this->configHelper->getTwitterConsumerKey(),
@@ -136,7 +162,7 @@ class Twitter
         ksort($params);
 
         // Construct the base string
-        $baseString = "$method&" . rawurlencode($url) . '&';
+        $baseString = sprintf('%s&', $method) . rawurlencode($url) . '&';
         $baseString .= rawurlencode(http_build_query($params));
 
         // Construct the signing key
@@ -153,7 +179,7 @@ class Twitter
      * @return string
      * @throws \Exception
      */
-    public function createRequestUrl()
+    public function createRequestUrl(): string
     {
         $token = $this->getRequestToken();
 

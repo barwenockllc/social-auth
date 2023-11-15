@@ -11,10 +11,34 @@ namespace Barwenock\SocialAuth\Model\Config\Source;
 
 class Redirect implements \Magento\Framework\Data\OptionSourceInterface
 {
+    /**
+     * Customer Account
+     * @var int
+     */
     const CUSTOMER_ACCOUNT = 1;
+
+    /**
+     * Current Page
+     * @var int
+     */
     const CURRENT_PAGE = 2;
+
+    /**
+     * Home Page
+     * @var int
+     */
     const HOME_PAGE = 3;
+
+    /**
+     * Privacy And Cookie Policy
+     * @var int
+     */
     const PRIVACY_AND_COOKIE_POLICY = 4;
+
+    /**
+     * Custom Url
+     * @var int
+     */
     const CUSTOM_URL = 5;
 
     /**

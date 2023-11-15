@@ -13,10 +13,24 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
      * Connect social media type
+     * @var string
      */
     protected const CONNECT_TYPE = 'twitter';
 
-    protected $isRegistor;
+    /**
+     * @var bool
+     */
+    protected $isRegistor = false;
+
+    /**
+     * @var string
+     */
+    protected $referer;
+
+    /**
+     * @var string
+     */
+    protected $flag;
 
     /**
      * @var \Magento\Customer\Model\Session
@@ -136,11 +150,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
             $checkoutPage = $this->coreSession->getCheckoutPage();
             $isSecure = $this->store->isCurrentlySecure();
             $this->twitterConnect();
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             if (!$checkoutPage) {
-                $this->messageManager->addErrorMessage($e->getMessage());
+                $this->messageManager->addErrorMessage($exception->getMessage());
             } else {
-                $this->coreSession->setErrorMsg($e->getMessage());
+                $this->coreSession->setErrorMsg($exception->getMessage());
             }
         }
 
@@ -178,7 +192,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
             $attributeCodes = ['socialauth_twitter_id', 'socialauth_twitter_token'];
             foreach ($attributeCodes as $attributeCode) {
                 $attributeId = $this->eavAttribute->getIdByCode('customer', $attributeCode);
-                if (!$attributeId) {
+                if ($attributeId === 0) {
                     throw new \Magento\Framework\Exception\LocalizedException(
                         __('Attribute %1 does not exist', $attributeCode)
                     );
@@ -206,7 +220,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($userInfo['email']);
 
-            if ($customersByEmail->getTotalCount()) {
+            if ($customersByEmail->getTotalCount() !== 0) {
                 $this->socialCustomerHelper
                     ->connectBySocialId(
                         $customersByEmail,
@@ -230,6 +244,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         __('Twitter')
                     ));
                 }
+
                 return;
             }
 
@@ -263,7 +278,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         self::CONNECT_TYPE
                     );
                 } catch (\Exception $exception) {
-                    throw new \Exception($exception->getMessage());
+                    throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
                 }
             }
 
@@ -288,7 +303,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @return bool
      * @throws \Exception
      */
-    public function checkAccountByTwitterId($customersByTwitterId)
+    public function checkAccountByTwitterId($customersByTwitterId): bool
     {
         $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($customersByTwitterId->getTotalCount()) {
@@ -308,8 +323,10 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     __('You have successfully logged in using your %1 account.', __('Twitter'))
                 );
             }
+
             return true;
         }
+
         return false;
     }
 
@@ -317,11 +334,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @param $requestToken
      * @return bool
      */
-    protected function isRequestValid($requestToken)
+    protected function isRequestValid($requestToken): bool
     {
         $params = $this->request->getParams();
 
-        if (empty($params) || empty($requestToken)) {
+        if ($params === [] || empty($requestToken)) {
             // Direct route access - deny
             return false;
         }
@@ -361,6 +378,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         __('Your %1 account is already connected to one of our store accounts.', __('Twitter'))
                     );
                 }
+
                 return;
             }
 
