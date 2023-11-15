@@ -47,6 +47,11 @@ class Create
     protected $storeManager;
 
     /**
+     * @var \Magento\Customer\Model\ResourceModel\Customer
+     */
+    protected $resourceCustomer;
+
+    /**
      * @param \Magento\Customer\Model\Customer $customerModel
      * @param \Barwenock\SocialAuth\Model\LoginTypeFactory $loginTypeFactory
      * @param \Magento\Customer\Model\Session $customerSession
@@ -54,6 +59,7 @@ class Create
      * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
      * @param \Magento\Newsletter\Model\SubscriptionManager $subscriptionManager
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Customer\Model\ResourceModel\Customer $resourceCustomer
      */
     public function __construct(
         \Magento\Customer\Model\Customer $customerModel,
@@ -62,7 +68,8 @@ class Create
         \Barwenock\SocialAuth\Api\LoginTypeRepositoryInterface $loginTypeRepository,
         \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
         \Magento\Newsletter\Model\SubscriptionManager $subscriptionManager,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        \Magento\Customer\Model\ResourceModel\Customer $resourceCustomer
     ) {
         $this->customerModel = $customerModel;
         $this->loginTypeFactory = $loginTypeFactory;
@@ -71,15 +78,16 @@ class Create
         $this->configHelper = $configHelper;
         $this->subscriptionManager = $subscriptionManager;
         $this->storeManager = $storeManager;
+        $this->resourceCustomer = $resourceCustomer;
     }
 
     /**
      * @param $email
      * @param $firstName
      * @param $lastName
-     * @param $googleId
-     * @param $token
-     * @param $loginType
+     * @param $socialId
+     * @param $socialToken
+     * @param $social
      * @return void
      * @throws \Exception
      */
@@ -92,8 +100,9 @@ class Create
                 ->setLastname($lastName)
                 ->setData('socialauth_' . $social . '_id', $socialId)
                 ->setData('socialauth_' . $social . '_token', $socialToken)
-                ->setConfirmation(null)
-                ->save();
+                ->setConfirmation(null);
+
+            $this->resourceCustomer->save($this->customerModel);
 
             $customerId = $this->customerModel->getId();
 
@@ -110,10 +119,11 @@ class Create
 
             $this->customerModel->sendNewAccountEmail();
 
-            $this->customerSession->loginById($this->customerModel->getId());
+            $this->customerSession->loginById($customerId);
         } catch (\Exception $exception) {
             throw new \Exception(
-                'Exception happened during authorization: ' . $exception->getMessage(),
+                'Exception happened during authorization: ' .
+                $exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
