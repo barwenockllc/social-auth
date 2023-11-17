@@ -62,7 +62,7 @@ class Request implements \Magento\Framework\App\ActionInterface
         \Magento\Framework\App\RequestInterface $request,
         \Magento\Framework\Controller\ResultFactory $resultFactory,
         \Magento\Framework\App\Response\Http $redirect,
-        \Magento\Framework\UrlInterface $url,
+        \Magento\Framework\UrlInterface $url
     ) {
         $this->session = $session;
         $this->googleService = $googleService;

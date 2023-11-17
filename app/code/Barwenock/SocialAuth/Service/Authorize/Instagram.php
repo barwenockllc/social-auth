@@ -120,7 +120,7 @@ class Instagram
         $isSecure = $this->store->isCurrentlySecure();
         $this->protocol = $isSecure ? "https" : "http";
         $this->redirectUri = $this->url->sessionUrlVar(
-            $this->url->getUrl(self::REDIRECT_URI_ROUTE, ['_secure' => true])
+            $this->url->getUrl(self::REDIRECT_URI_ROUTE, ['_secure' => $isSecure])
         );
 
         $this->scope = $params['scope'] ?? $this->getScope();

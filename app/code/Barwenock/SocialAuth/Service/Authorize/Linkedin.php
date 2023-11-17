@@ -70,8 +70,6 @@ class Linkedin
      */
     protected $protocol;
 
-
-
     /**
      * @var \Magento\Store\Model\Store
      */
@@ -121,9 +119,6 @@ class Linkedin
         if ($this->configHelper->getLinkedinStatus() === 0) {
             return;
         }
-
-        $this->clientId = $this->getClientId();
-        $this->clientSecret = $this->getClientSecret();
 
         $isSecure = $this->store->isCurrentlySecure();
         $this->protocol = $isSecure ? "https" : "http";
