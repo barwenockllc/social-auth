@@ -9,163 +9,75 @@ declare(strict_types=1);
 
 namespace Barwenock\SocialAuth\Service\Authorize;
 
-class Instagram
+class Instagram extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocialAuth
 {
     /**
-     * Redirect Route URI
      * @var string
      */
-    public const REDIRECT_URI_ROUTE = 'socialauth/instagram/authorize';
-
-    /**
-     * Oauth Service URI
-     * @var string
-     */
-    public const OAUTH2_SERVICE_URI = 'https://graph.instagram.com/';
-
-    /**
-     * Oauth Auth URI
-     * @var string
-     */
-    public const OAUTH2_AUTH_URI = 'https://api.instagram.com/oauth/authorize';
-
-    /**
-     * Oauth Token URI
-     * @var string
-     */
-    public const OAUTH2_TOKEN_URI = 'https://api.instagram.com/oauth/access_token';
-
-    /**
-     * RedirectUri
-     */
-    protected $redirectUri = null;
-
-    /**
-     * State
-     */
-    protected $state = '';
-
-    /**
-     * Scope
-     */
-    protected $scope = ['user_profile'];
-
-    /**
-     * Token
-     */
-    protected $token = null;
+    protected const REDIRECT_URI_ROUTE = 'socialauth/instagram/authorize';
 
     /**
      * @var string
      */
-    protected $protocol;
+    protected const OAUTH2_SERVICE_URI = 'https://graph.instagram.com/';
 
     /**
-     * @var \Magento\Store\Model\Store
+     * @var string
      */
-    protected $store;
+    protected const OAUTH2_AUTH_URI = 'https://api.instagram.com/oauth/authorize';
 
     /**
-     * @var \Magento\Framework\Url
+     * @var string
      */
-    protected $url;
+    protected const OAUTH2_TOKEN_URI = 'https://api.instagram.com/oauth/access_token';
 
     /**
-     * @var \Magento\Framework\HTTP\Client\Curl
+     * @return int
      */
-    protected $curl;
-
-    /**
-     * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
-     */
-    protected $configHelper;
-
-    /**
-     * @var \Magento\Framework\App\RequestInterface
-     */
-    protected $request;
-
-    /**
-     * @param \Magento\Store\Model\Store $store
-     * @param \Magento\Framework\Url $url
-     * @param \Magento\Framework\HTTP\Client\Curl $curl
-     * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
-     * @param \Magento\Framework\App\RequestInterface $request
-     */
-    public function __construct(
-        \Magento\Store\Model\Store $store,
-        \Magento\Framework\Url $url,
-        \Magento\Framework\HTTP\Client\Curl $curl,
-        \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
-        \Magento\Framework\App\RequestInterface $request
-    ) {
-        $this->store = $store;
-        $this->url = $url;
-        $this->curl = $curl;
-        $this->configHelper = $configHelper;
-        $this->request = $request;
-    }
-
-    /**
-     * Set parameters
-     *
-     * @param array $params contain params value
-     */
-    public function setParameters($params = [])
+    protected function getConfigStatus(): int
     {
-        if ($this->configHelper->getInstagramStatus() === 0) {
-            return;
-        }
-
-        $isSecure = $this->store->isCurrentlySecure();
-        $this->protocol = $isSecure ? "https" : "http";
-        $this->redirectUri = $this->url->sessionUrlVar(
-            $this->url->getUrl(self::REDIRECT_URI_ROUTE, ['_secure' => $isSecure])
-        );
-
-        $this->scope = $params['scope'] ?? $this->getScope();
-        $this->state = $params['state'] ?? $this->getState();
+        return $this->configHelper->getInstagramStatus();
     }
 
     /**
-     * Create request url
-     *
      * @return string
      */
-    public function createRequestUrl(): string
+    protected function getClientIdConfig(): string
     {
-        $queryParams = [
-            'response_type' => 'code',
-            'client_id' => $this->getClientId(),
-            'redirect_uri' => $this->getRedirectUri(),
-            'state' => $this->getState(),
-            'scope' => implode(',', $this->getScope()),
-        ];
-
-        return self::OAUTH2_AUTH_URI . '?' . http_build_query($queryParams);
+        return 'getInstagramClientId';
     }
 
     /**
-     * Get the response from the api
+     * @return string
+     */
+    protected function getClientSecretConfig(): string
+    {
+        return 'getInstagramSecretKey';
+    }
+
+    /**
+     * @return array
+     */
+    protected function createRequestSpecificParams(): array
+    {
+        return [];
+    }
+
+    /**
+     * Get the default scope for Instagram.
      *
-     * @param string $method method of endpoint
-     * @param array $params
-     * @return object
+     * @return array
+     */
+    protected function getDefaultScope(): array
+    {
+        return ['user_profile'];
+    }
+
+    /**
+     * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function api($method = 'GET', $params = [])
-    {
-        $authMethod = '&access_token=' . $this->getAccessToken();
-        $url = self::OAUTH2_SERVICE_URI . $this->token->user_id . '?fields=id,username' . $authMethod;
-
-        $method = strtoupper($method);
-        return $this->httpRequest($url, $method, $params);
-    }
-
-    /**
-     * Fetch access token
-     */
-    protected function fetchAccessToken()
+    protected function fetchAccessTokenSpecific()
     {
         $code = $this->request->getParam('code');
 
@@ -188,118 +100,38 @@ class Instagram
     }
 
     /**
-     * Get response from the api
-     *
-     * @param  string $url    endpoint url
-     * @param  string $method name of method
-     * @param  array  $params cotains param
-     * @return object
+     * @return bool
      */
-    protected function httpRequest($url, $method = 'GET', $params = [])
+    protected function isAccessTokenExpired(): bool
     {
-        $this->curl->setOption(CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        $this->curl->setOption(CURLOPT_TIMEOUT, 60);
-
-        switch ($method) {
-            case 'GET':
-                $this->curl->addHeader('Connection', 'Keep-Alive');
-                $this->curl->get($url);
-                break;
-            case 'POST':
-                $this->curl->addHeader('Content-Type', 'application/x-www-form-urlencoded');
-                $this->curl->post($url, $params);
-                break;
-            case 'DELETE':
-                $this->curl->get($url);
-                break;
-            default:
-                throw new \Magento\Framework\Exception\LocalizedException(
-                    __('Required HTTP method is not supported.')
-                );
-        }
-
-        $response = json_decode($this->curl->getBody());
-        $status = $this->curl->getStatus();
-
-        if ($status === 400 || $status === 401) {
-            $message = $response->error->message ?? __('Unspecified OAuth error occurred.');
-            throw new \Magento\Framework\Exception\LocalizedException(__($message));
-        }
-
-        return $response;
+        return false;
     }
 
     /**
-     * Get client id
-     *
-     * @return string
+     * @return void
      */
-    protected function getClientId()
+    protected function refreshAccessToken()
     {
-        return $this->configHelper->getInstagramClientId();
+        // Implement refresh logic if needed
     }
 
     /**
-     * Get client secret key
-     *
-     * @return string
-     */
-    protected function getClientSecret()
-    {
-        return $this->configHelper->getInstagramSecretKey();
-    }
-
-    /**
-     * Get redirect url
-     *
-     * @return String
-     */
-    public function getRedirectUri()
-    {
-        return $this->redirectUri;
-    }
-
-    /**
-     * Set state
-     *
-     * @param string $state
-     */
-    public function setState($state)
-    {
-        $this->state = $state;
-    }
-
-    /**
-     * Get Scope
-     *
+     * @param $method
+     * @param $params
      * @return array
      */
-    public function getScope()
+    protected function getSpecificHttpRequestParams($method, $params): array
     {
-        return $this->scope;
+        return [];
     }
 
     /**
-     * Get State
+     * Get the scope separator for Instagram.
      *
      * @return string
      */
-    public function getState()
+    protected function getScopeSeparator(): string
     {
-        return $this->state;
-    }
-
-    /**
-     * Get Access token
-     *
-     * @return string
-     */
-    public function getAccessToken()
-    {
-        if (empty($this->token)) {
-            $this->fetchAccessToken();
-        }
-
-        return $this->token->access_token;
+        return ',';
     }
 }

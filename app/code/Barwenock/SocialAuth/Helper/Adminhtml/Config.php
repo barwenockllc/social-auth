@@ -94,7 +94,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return int
      */
-    public function getGoogleStatus()
+    public function getGoogleStatus(): int
     {
         return (int) $this->scopeConfig->getValue(
             'socialauth/google_config/status',
@@ -105,7 +105,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return int
      */
-    public function getLinkedinStatus()
+    public function getLinkedinStatus(): int
     {
         return (int) $this->scopeConfig->getValue(
             'socialauth/linkedin_config/status',
@@ -116,7 +116,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return int
      */
-    public function getInstagramStatus()
+    public function getInstagramStatus(): int
     {
         return (int) $this->scopeConfig->getValue(
             'socialauth/instagram_config/status',
@@ -159,7 +159,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return int
      */
-    public function getFacebookStatus()
+    public function getFacebookStatus(): int
     {
         return (int) $this->scopeConfig->getValue(
             'socialauth/facebook_config/status',
@@ -236,7 +236,7 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @return int
      */
-    public function getTwitterStatus()
+    public function getTwitterStatus(): int
     {
         return (int) $this->scopeConfig->getValue(
             'socialauth/twitter_config/status',

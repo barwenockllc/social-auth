@@ -119,20 +119,20 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @param \Magento\Framework\Controller\ResultFactory $resultFactory
      */
     public function __construct(
-        \Magento\Framework\Session\Generic $session,
-        \Magento\Store\Model\Store $store,
-        \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
-        \Barwenock\SocialAuth\Service\Authorize\Instagram $instagramService,
-        \Magento\Framework\Session\SessionManagerInterface $coreSession,
-        \Magento\Customer\Model\Session $customerSession,
-        \Barwenock\SocialAuth\Helper\CacheManagement $cacheManagement,
-        \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\Url $url,
+        \Magento\Framework\Session\Generic                    $session,
+        \Magento\Store\Model\Store                            $store,
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute     $eavAttribute,
+        \Barwenock\SocialAuth\Service\Authorize\Instagram     $instagramService,
+        \Magento\Framework\Session\SessionManagerInterface    $coreSession,
+        \Magento\Customer\Model\Session                       $customerSession,
+        \Barwenock\SocialAuth\Helper\CacheManagement          $cacheManagement,
+        \Magento\Framework\App\RequestInterface               $request,
+        \Magento\Framework\Url                                $url,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
-        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate,
-        \Magento\Framework\App\Response\Http $redirect,
-        \Magento\Framework\Message\ManagerInterface $messageManager,
-        \Magento\Framework\Controller\ResultFactory $resultFactory
+        \Barwenock\SocialAuth\Model\Customer\Create           $socialCustomerCreate,
+        \Magento\Framework\App\Response\Http                  $redirect,
+        \Magento\Framework\Message\ManagerInterface           $messageManager,
+        \Magento\Framework\Controller\ResultFactory           $resultFactory
     ) {
         $this->customerSession = $customerSession;
         $this->eavAttribute = $eavAttribute;
@@ -210,13 +210,15 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 }
             }
 
-            $userInfo = $this->instagramService->api();
             $token = $this->instagramService->getAccessToken();
+            $userInfo = $this->instagramService->api(
+                $token->user_id . '?fields=id,username' . '&access_token=' . $token->access_token
+            );
 
             $customersByInstagramId = $this->socialCustomerHelper
                 ->getCustomersBySocialId($userInfo->id, self::CONNECT_TYPE);
 
-            $this->connectExistingAccount($customersByInstagramId, $userInfo, $token);
+            $this->connectExistingAccount($customersByInstagramId, $userInfo, $token->access_token);
 
             if ($this->checkAccountByInstagramId($customersByInstagramId)) {
                 return;
@@ -227,7 +229,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             if ($customersByEmail->getTotalCount() !== 0) {
                 $this->socialCustomerHelper
-                    ->connectBySocialId($customersByEmail, $userInfo->id, $token, self::CONNECT_TYPE);
+                    ->connectBySocialId($customersByEmail, $userInfo->id, $token->access_token, self::CONNECT_TYPE);
 
                 if (!$checkoutPage) {
                     $this->messageManager->addSuccessMessage(
@@ -275,7 +277,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         $firstName,
                         $lastName,
                         $userInfo->id,
-                        $token,
+                        $token->access_token,
                         self::CONNECT_TYPE
                     );
                 } catch (\Exception $exception) {

@@ -111,17 +111,17 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @param \Magento\Framework\Controller\ResultFactory $resultFactory
      */
     public function __construct(
-        \Magento\Store\Model\Store $store,
+        \Magento\Store\Model\Store                            $store,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
-        \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
-        \Barwenock\SocialAuth\Service\Authorize\Linkedin $linkedinService,
-        \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\Session\SessionManagerInterface $coreSession,
-        \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\UrlInterface $url,
-        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate,
-        \Magento\Framework\Message\ManagerInterface $messageManager,
-        \Magento\Framework\Controller\ResultFactory $resultFactory
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute     $eavAttribute,
+        \Barwenock\SocialAuth\Service\Authorize\Linkedin      $linkedinService,
+        \Magento\Customer\Model\Session                       $customerSession,
+        \Magento\Framework\Session\SessionManagerInterface    $coreSession,
+        \Magento\Framework\App\RequestInterface               $request,
+        \Magento\Framework\UrlInterface                       $url,
+        \Barwenock\SocialAuth\Model\Customer\Create           $socialCustomerCreate,
+        \Magento\Framework\Message\ManagerInterface           $messageManager,
+        \Magento\Framework\Controller\ResultFactory           $resultFactory
     ) {
         $this->customerSession = $customerSession;
         $this->socialCustomerHelper = $socialCustomerHelper;
@@ -194,13 +194,13 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 }
             }
 
-            $userInfo = $this->linkedinService->api('/v2/userinfo');
             $token = $this->linkedinService->getAccessToken();
+            $userInfo = $this->linkedinService->api('/v2/userinfo');
 
             $customersByLinkedinId = $this->socialCustomerHelper
                 ->getCustomersBySocialId($userInfo->sub, self::CONNECT_TYPE);
 
-            $this->connectExistingAccount($customersByLinkedinId, $userInfo, $token);
+            $this->connectExistingAccount($customersByLinkedinId, $userInfo, $token->access_token);
 
             if ($this->checkAccountByLinkedinId($customersByLinkedinId)) {
                 return;
@@ -210,7 +210,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             if ($customersByEmail->getTotalCount() !== 0) {
                 $this->socialCustomerHelper
-                    ->connectBySocialId($customersByEmail, $userInfo->sub, $token, self::CONNECT_TYPE);
+                    ->connectBySocialId($customersByEmail, $userInfo->sub, $token->access_token, self::CONNECT_TYPE);
 
                 if (!$checkoutPage) {
                     $this->messageManager->addSuccessMessage(
@@ -252,7 +252,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         $userInfo->given_name,
                         $userInfo->family_name,
                         $userInfo->sub,
-                        $token,
+                        $token->access_token,
                         self::CONNECT_TYPE
                     );
             }

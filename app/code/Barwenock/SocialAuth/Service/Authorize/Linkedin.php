@@ -9,168 +9,75 @@ declare(strict_types=1);
 
 namespace Barwenock\SocialAuth\Service\Authorize;
 
-class Linkedin
+class Linkedin extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocialAuth
 {
     /**
-     * Redirect Route URI
      * @var string
      */
     protected const REDIRECT_URI_ROUTE = 'socialauth/linkedin/authorize';
 
     /**
-     * Oauth Service URI
      * @var string
      */
     protected const OAUTH2_SERVICE_URI = 'https://api.linkedin.com';
 
     /**
-     * Oauth Auth URI
      * @var string
      */
     protected const OAUTH2_AUTH_URI = 'https://www.linkedin.com/oauth/v2/authorization';
 
     /**
-     * Oauth Token URI
      * @var string
      */
     protected const OAUTH2_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken';
 
     /**
-     * RedirectUri
+     * @return int
      */
-    protected $redirectUri = null;
-
-    /**
-     * State
-     */
-    protected $state = '';
-
-    /**
-     * Scope
-     */
-    protected $scope = ['openid', 'profile', 'email'];
-
-    /**
-     * Token
-     */
-    protected $token = null;
-
-    /**
-     * @var string
-     */
-    protected $clientId;
-
-    /**
-     * @var string
-     */
-    protected $clientSecret;
-
-    /**
-     * @var string
-     */
-    protected $protocol;
-
-    /**
-     * @var \Magento\Store\Model\Store
-     */
-    protected $store;
-
-    /**
-     * @var \Magento\Framework\HTTP\Client\Curl
-     */
-    protected $curl;
-
-    /**
-     * @var \Magento\Framework\App\RequestInterface
-     */
-    protected $request;
-
-    /**
-     * @var \Magento\Framework\Url
-     */
-    protected $url;
-
-    /**
-     * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
-     */
-    protected $configHelper;
-
-    public function __construct(
-        \Magento\Store\Model\Store $store,
-        \Magento\Framework\HTTP\Client\Curl $curl,
-        \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\Url $url,
-        \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
-    ) {
-        $this->store = $store;
-        $this->curl = $curl;
-        $this->request = $request;
-        $this->url = $url;
-        $this->configHelper = $configHelper;
-    }
-
-    /**
-     * Set parameters
-     *
-     * @param array $params contain params value
-     */
-    public function setParameters($params = [])
+    protected function getConfigStatus(): int
     {
-        if ($this->configHelper->getLinkedinStatus() === 0) {
-            return;
-        }
-
-        $isSecure = $this->store->isCurrentlySecure();
-        $this->protocol = $isSecure ? "https" : "http";
-        $this->redirectUri = $this->url->sessionUrlVar(
-            $this->url->getUrl(self::REDIRECT_URI_ROUTE, ['_secure' => $isSecure])
-        );
-
-        $this->scope = $params['scope'] ?? $this->getScope();
-        $this->state = $params['state'] ?? $this->getState();
+        return $this->configHelper->getLinkedinStatus();
     }
 
     /**
-     * Create request url
-     *
      * @return string
      */
-    public function createRequestUrl(): string
+    protected function getClientIdConfig(): string
     {
-        $queryParams = [
-            'response_type' => 'code',
-            'client_id' => $this->getClientId(),
-            'redirect_uri' => $this->getRedirectUri(),
-            'state' => $this->getState(),
-            'scope' => implode(',', $this->getScope()),
-            'display' => 'popup'
-        ];
-
-        return self::OAUTH2_AUTH_URI . '?' . http_build_query($queryParams);
+        return 'getLinkedinClientId';
     }
 
     /**
-     * Get response from the api
-     *
-     * @param  string $endpoint endpoint url
-     * @param  string $method   name of method
-     * @param  array  $params   cotains param
-     * @return object
+     * @return string
      */
-    public function api($endpoint, $method = 'GET', $params = [])
+    protected function getClientSecretConfig(): string
     {
-        $url = self::OAUTH2_SERVICE_URI . $endpoint;
-        $method = strtoupper($method);
-
-        $params['oauth2_access_token'] = $this->getAccessToken();
-        return $this->httpRequest($url, $method, $params);
+        return 'getLinkedinSecret';
     }
 
     /**
-     * Fetch access token
+     * @return array
+     */
+    protected function createRequestSpecificParams(): array
+    {
+        return [];
+    }
+
+    /**
+     * Get the default scope for LinkedIn.
+     *
+     * @return array
+     */
+    protected function getDefaultScope(): array
+    {
+        return ['openid', 'profile', 'email'];
+    }
+
+    /**
+     * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function fetchAccessToken()
+    protected function fetchAccessTokenSpecific()
     {
         $code = $this->request->getParam('code');
 
@@ -193,118 +100,41 @@ class Linkedin
     }
 
     /**
-     * Get response from the api
-     *
-     * @param  string $url    endpoint url
-     * @param  string $method name of method
-     * @param  array  $params cotains param
-     * @return object
+     * @return bool
      */
-    protected function httpRequest($url, $method = 'GET', $params = [])
+    protected function isAccessTokenExpired(): bool
     {
-        $this->curl->setOption(CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        $this->curl->setOption(CURLOPT_TIMEOUT, 60);
-
-        switch ($method) {
-            case 'GET':
-                $this->curl->addHeader('Authorization', 'Bearer ' . $params['oauth2_access_token']);
-                $this->curl->addHeader('Connection', 'Keep-Alive');
-                $this->curl->get($url);
-                break;
-            case 'POST':
-                $this->curl->addHeader('Content-Type', 'application/x-www-form-urlencoded');
-                $this->curl->post($url, $params);
-                break;
-            case 'DELETE':
-                $this->curl->get($url);
-                break;
-            default:
-                throw new \Magento\Framework\Exception\LocalizedException(
-                    __('Required HTTP method is not supported.')
-                );
-        }
-
-        $response = json_decode($this->curl->getBody());
-        $status = $this->curl->getStatus();
-
-        if ($status === 400 || $status === 401) {
-            $message = $response->error->message ?? __('Unspecified OAuth error occurred.');
-            throw new \Magento\Framework\Exception\LocalizedException(__($message));
-        }
-
-        return $response;
+        return false;
     }
 
     /**
-     * Get client id
+     * @return void
+     */
+    protected function refreshAccessToken()
+    {
+        // Implement refresh logic if needed
+    }
+
+    /**
+     * @param $method
+     * @param $params
+     * @return string[]
+     */
+    protected function getSpecificHttpRequestParams($method, $params): array
+    {
+        return [
+            'Authorization' => 'Bearer ' . $params['access_token'],
+            'Connection' => 'Keep-Alive'
+        ];
+    }
+
+    /**
+     * Get the scope separator for Facebook.
      *
      * @return string
      */
-    public function getClientId()
+    protected function getScopeSeparator(): string
     {
-        return $this->configHelper->getLinkedinClientId();
-    }
-
-    /**
-     * @return string
-     */
-    public function getClientSecret()
-    {
-        return $this->configHelper->getLinkedinSecret();
-    }
-
-    /**
-     * Get redirect url
-     *
-     * @return String
-     */
-    public function getRedirectUri()
-    {
-        return $this->redirectUri;
-    }
-
-    /**
-     * Get Scope
-     *
-     * @return array
-     */
-    public function getScope()
-    {
-        return $this->scope;
-    }
-
-    /**
-     * Get State
-     *
-     * @return string
-     */
-    public function getState()
-    {
-        return $this->state;
-    }
-
-    /**
-     * Set state
-     *
-     * @param string $state user state
-     */
-    public function setState($state)
-    {
-        $this->state = $state;
-    }
-
-    /**
-     * Get Access token
-     *
-     * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function getAccessToken()
-    {
-        if (empty($this->token)) {
-            $this->fetchAccessToken();
-        }
-
-        return $this->token->access_token;
+        return ',';
     }
 }

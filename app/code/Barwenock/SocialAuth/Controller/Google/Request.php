@@ -56,13 +56,13 @@ class Request implements \Magento\Framework\App\ActionInterface
      * @param \Magento\Framework\UrlInterface $url
      */
     public function __construct(
-        \Magento\Framework\Session\Generic $session,
+        \Magento\Framework\Session\Generic             $session,
         \Barwenock\SocialAuth\Service\Authorize\Google $googleService,
-        \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
-        \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\Controller\ResultFactory $resultFactory,
-        \Magento\Framework\App\Response\Http $redirect,
-        \Magento\Framework\UrlInterface $url
+        \Barwenock\SocialAuth\Helper\Adminhtml\Config  $configHelper,
+        \Magento\Framework\App\RequestInterface        $request,
+        \Magento\Framework\Controller\ResultFactory    $resultFactory,
+        \Magento\Framework\App\Response\Http           $redirect,
+        \Magento\Framework\UrlInterface                $url
     ) {
         $this->session = $session;
         $this->googleService = $googleService;

@@ -114,19 +114,19 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @param \Magento\Framework\App\Response\Http $redirect
      */
     public function __construct(
-        \Magento\Framework\Session\Generic $session,
-        \Magento\Store\Model\Store $store,
+        \Magento\Framework\Session\Generic                    $session,
+        \Magento\Store\Model\Store                            $store,
         \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper,
-        \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute,
-        \Barwenock\SocialAuth\Service\Authorize\Google $googleService,
-        \Magento\Framework\Session\SessionManagerInterface $coreSession,
-        \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\Controller\ResultFactory $resultFactory,
-        \Magento\Framework\Message\ManagerInterface $massageManager,
-        \Barwenock\SocialAuth\Helper\CacheManagement $cacheManagement,
-        \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\UrlInterface $url,
-        \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
+        \Magento\Eav\Model\ResourceModel\Entity\Attribute     $eavAttribute,
+        \Barwenock\SocialAuth\Service\Authorize\Google        $googleService,
+        \Magento\Framework\Session\SessionManagerInterface    $coreSession,
+        \Magento\Customer\Model\Session                       $customerSession,
+        \Magento\Framework\Controller\ResultFactory           $resultFactory,
+        \Magento\Framework\Message\ManagerInterface           $massageManager,
+        \Barwenock\SocialAuth\Helper\CacheManagement          $cacheManagement,
+        \Magento\Framework\App\RequestInterface               $request,
+        \Magento\Framework\UrlInterface                       $url,
+        \Barwenock\SocialAuth\Model\Customer\Create           $socialCustomerCreate
     ) {
         $this->customerSession = $customerSession;
         $this->socialCustomerHelper = $socialCustomerHelper;
@@ -202,23 +202,23 @@ class Authorize implements \Magento\Framework\App\ActionInterface
             }
         }
 
-            $userInfo = $this->googleService->api('/userinfo');
-            $token = $this->googleService->getAccessToken();
+        $token = $this->googleService->getAccessToken();
+        $userInfo = $this->googleService->api('/userinfo');
 
-            $customersByGoogleId = $this->socialCustomerHelper
-                ->getCustomersBySocialId($userInfo->id, self::CONNECT_TYPE);
+        $customersByGoogleId = $this->socialCustomerHelper
+            ->getCustomersBySocialId($userInfo->id, self::CONNECT_TYPE);
 
-            $this->connectExistingAccount($customersByGoogleId, $userInfo, $token);
+        $this->connectExistingAccount($customersByGoogleId, $userInfo, $token->access_token);
 
         if ($this->checkAccountByGoogleId($customersByGoogleId)) {
             return;
         }
 
-            $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($userInfo->email);
+        $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($userInfo->email);
 
         if ($customersByEmail->getTotalCount() !== 0) {
             $this->socialCustomerHelper
-                ->connectBySocialId($customersByEmail, $userInfo->id, $token, self::CONNECT_TYPE);
+                ->connectBySocialId($customersByEmail, $userInfo->id, $token->access_token, self::CONNECT_TYPE);
 
             if (!$checkoutPage) {
                 $this->messageManager->addSuccessMessage(
@@ -272,7 +272,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                  $userInfo->given_name,
                  $userInfo->family_name,
                  $userInfo->id,
-                 $token,
+                 $token->access_token,
                  self::CONNECT_TYPE
              );
         }

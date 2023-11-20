@@ -9,34 +9,30 @@ declare(strict_types=1);
 
 namespace Barwenock\SocialAuth\Service\Authorize;
 
-class Google
+class Google extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocialAuth
 {
     /**
-     * Redirect Route
      * @var string
      */
     protected const REDIRECT_URI_ROUTE = 'socialauth/google/authorize';
 
     /**
-     * Oauth Token URI
      * @var string
      */
     protected const OAUTH2_TOKEN_URI = 'https://accounts.google.com/o/oauth2/token';
 
     /**
-     * Oauth Auth URI
      * @var string
      */
     protected const OAUTH2_AUTH_URI = 'https://accounts.google.com/o/oauth2/auth';
 
     /**
-     * Oauth Service URI
      * @var string
      */
     protected const OAUTH2_SERVICE_URI = 'https://www.googleapis.com/oauth2/v2';
 
     /**
-     * Scope
+     * @var string[]
      */
     protected $scope = [
         'https://www.googleapis.com/auth/userinfo.profile',
@@ -44,168 +40,65 @@ class Google
     ];
 
     /**
-     * Access
+     * @var string
      */
     protected $access = 'offline';
 
     /**
-     * Prompt
+     * @var string
      */
     protected $prompt = 'auto';
 
     /**
-     * @var string
+     * @return int
      */
-    protected $protocol;
-
-    /**
-     * RedirectUri
-     */
-    protected $redirectUri = null;
-
-    /**
-     * Token
-     */
-    protected $token;
-
-    /**
-     * State
-     */
-    protected $state = '';
-
-    /**
-     * @var \Magento\Store\Model\Store
-     */
-    protected $store;
-
-    /**
-     * @var \Magento\Framework\HTTP\Client\Curl
-     */
-    protected $curl;
-
-    /**
-     * @var \Magento\Framework\Url
-     */
-    protected $url;
-
-    /**
-     * @var \Magento\Framework\App\RequestInterface
-     */
-    protected $request;
-
-    /**
-     * @var \Barwenock\SocialAuth\Helper\Adminhtml\Config
-     */
-    protected $configHelper;
-
-    /**
-     * @var \Magento\Framework\Serialize\Serializer\Json
-     */
-    protected $jsonSerializer;
-
-    /**
-     * @param \Magento\Store\Model\Store $store
-     * @param \Magento\Framework\HTTP\Client\Curl $curl
-     * @param \Magento\Framework\App\RequestInterface $request
-     * @param \Magento\Framework\Url $url
-     * @param \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper
-     * @param \Magento\Framework\Serialize\Serializer\Json $jsonSerializer
-     */
-    public function __construct(
-        \Magento\Store\Model\Store $store,
-        \Magento\Framework\HTTP\Client\Curl $curl,
-        \Magento\Framework\App\RequestInterface $request,
-        \Magento\Framework\Url $url,
-        \Barwenock\SocialAuth\Helper\Adminhtml\Config $configHelper,
-        \Magento\Framework\Serialize\Serializer\Json $jsonSerializer
-    ) {
-        $this->store = $store;
-        $this->curl = $curl;
-        $this->request = $request;
-        $this->url = $url;
-        $this->configHelper = $configHelper;
-        $this->jsonSerializer = $jsonSerializer;
-    }
-
-    /**
-     * Set parameters
-     *
-     * @param array $params contain params value
-     */
-    public function setParameters($params = [])
+    protected function getConfigStatus(): int
     {
-        if ($this->configHelper->getGoogleStatus() === 0) {
-            return;
-        }
-
-        $isSecure = $this->store->isCurrentlySecure();
-        $this->protocol = $isSecure ? "https" : "http";
-        $this->redirectUri = $this->url->sessionUrlVar(
-            $this->url->getUrl(self::REDIRECT_URI_ROUTE, ['_secure' => $isSecure])
-        );
-
-        $this->scope = $params['scope'] ?? $this->getScope();
-        $this->state = $params['state'] ?? $this->getState();
-        $this->access = $params['access'] ?? $this->getAccess();
-        $this->prompt = $params['prompt'] ?? $this->getPrompt();
+        return $this->configHelper->getGoogleStatus();
     }
 
     /**
-     * Create request url
-     *
      * @return string
      */
-    public function createRequestUrl(): string
+    protected function getClientIdConfig(): string
     {
-        $queryParams = [
-            'response_type' => 'code',
-            'redirect_uri' => $this->getRedirectUri(),
-            'client_id' => $this->configHelper->getGoogleClientId(),
-            'scope' => implode(' ', $this->getScope()),
-            'state' => $this->getState(),
-            'access_type' => $this->getAccess(),
-            'approvalprompt' => $this->getPrompt(),
-            'display' => 'popup',
+        return 'getGoogleClientId';
+    }
+
+    /**
+     * @return string
+     */
+    protected function getClientSecretConfig(): string
+    {
+        return 'getGoogleSecret';
+    }
+
+    /**
+     * @return array
+     */
+    protected function createRequestSpecificParams(): array
+    {
+        return [
+            'access_type' => $this->access,
+            'approvalprompt' => $this->prompt
         ];
-
-        return self::OAUTH2_AUTH_URI . '?' . http_build_query($queryParams);
     }
 
     /**
-     * Get the response from the API
+     * Get the default scope for Google.
      *
-     * @param string $endpoint API endpoint
-     * @param string $method HTTP method (GET by default)
-     * @param array $params Additional parameters
-     * @return object
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return array
      */
-    public function api($endpoint, $method = 'GET', $params = [])
+    protected function getDefaultScope(): array
     {
-        $url = self::OAUTH2_SERVICE_URI . $endpoint;
-
-        $params['access_token'] = $this->getAccessToken();
-        return $this->httpRequest($url, strtoupper($method), $params);
+        return ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email'];
     }
 
     /**
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function fetchOrRefreshAccessToken()
-    {
-        if (empty($this->token)) {
-            $this->fetchAccessToken();
-        } elseif ($this->isAccessTokenExpired()) {
-            $this->refreshAccessToken();
-        }
-    }
-
-    /**
-     * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    protected function fetchAccessToken()
+    protected function fetchAccessTokenSpecific()
     {
         $code = $this->request->getParam('code');
 
@@ -217,9 +110,9 @@ class Google
 
         $tokenParams = [
             'code' => $code,
-            'redirect_uri' => $this->redirectUri,
-            'client_id' => $this->configHelper->getGoogleClientId(),
-            'client_secret' => $this->configHelper->getGoogleSecret(),
+            'redirect_uri' => $this->getRedirectUri(),
+            'client_id' => $this->getClientId(),
+            'client_secret' => $this->getClientSecret(),
             'grant_type' => 'authorization_code'
         ];
 
@@ -228,10 +121,16 @@ class Google
         $this->token = $response;
     }
 
+    /**
+     * @return bool
+     */
+    protected function isAccessTokenExpired(): bool
+    {
+        return ($this->token->created + ($this->token->expires_in - 30)) < time();
+    }
 
     /**
-     * Refresh the access token
-     *
+     * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function refreshAccessToken()
@@ -246,8 +145,8 @@ class Google
             self::OAUTH2_TOKEN_URI,
             'POST',
             [
-                'client_id' => $this->configHelper->getGoogleClientId(),
-                'client_secret' => $this->configHelper->getGoogleSecret(),
+                'client_id' => $this->getClientId(),
+                'client_secret' => $this->getClientSecret(),
                 'refresh_token' => $this->token->refresh_token,
                 'grant_type' => 'refresh_token'
             ]
@@ -259,128 +158,24 @@ class Google
     }
 
     /**
-     * Check access token expiry
-     *
-     * @return boolean
-     */
-    protected function isAccessTokenExpired()
-    {
-        // If the token is set to expire in the next 30 seconds.
-        return ($this->token->created + ($this->token->expires_in - 30)) < time();
-    }
-
-    /**
-     * @param $url
      * @param $method
      * @param $params
-     * @return object
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return string[]
      */
-    protected function httpRequest($url, $method = 'GET', $params = [])
+    protected function getSpecificHttpRequestParams($method, $params): array
     {
-        $this->curl->setOption(CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        $this->curl->setOption(CURLOPT_TIMEOUT, 60);
-
-        switch ($method) {
-            case 'GET':
-                $this->curl->addHeader('Authorization', 'Bearer ' . $params['access_token']);
-                $this->curl->get($url);
-                break;
-            case 'POST':
-                $this->curl->post($url, $params);
-                break;
-            case 'DELETE':
-                break;
-            default:
-                throw new \Magento\Framework\Exception\LocalizedException(
-                    __('Required HTTP method is not supported.')
-                );
-        }
-
-        $response = json_decode($this->curl->getBody());
-        $status = $this->curl->getStatus();
-
-        if ($status === 400 || $status === 401) {
-            $message = $response->error->message ?? __('Unspecified OAuth error occurred.');
-            throw new \Magento\Framework\Exception\LocalizedException(__($message));
-        }
-
-        return $response;
+        return [
+            'Authorization' => 'Bearer ' . $params['access_token']
+        ];
     }
 
     /**
-     * Get redirect url
-     *
-     * @return String
-     */
-    public function getRedirectUri()
-    {
-        return $this->redirectUri;
-    }
-
-    /**
-     * Get Scope
-     *
-     * @return array
-     */
-    public function getScope()
-    {
-        return $this->scope;
-    }
-
-    /**
-     * Get State
+     * Get the scope separator for Google.
      *
      * @return string
      */
-    public function getState()
+    protected function getScopeSeparator(): string
     {
-        return $this->state;
-    }
-
-    /**
-     * Set state
-     *
-     * @param string $state
-     */
-    public function setState($state)
-    {
-        $this->state = $state;
-    }
-
-    /**
-     * Get access
-     */
-    public function getAccess()
-    {
-        return $this->access;
-    }
-
-    /**
-     * Get Promt
-     */
-    public function getPrompt()
-    {
-        return $this->prompt;
-    }
-
-    /**
-     * Set access token
-     *
-     * @param string $token
-     */
-    public function setAccessToken($token)
-    {
-        $this->token = $this->jsonSerializer->unserialize($token);
-    }
-
-    /**
-     * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function getAccessToken()
-    {
-        $this->fetchOrRefreshAccessToken();
-        return $this->jsonSerializer->serialize($this->token->access_token);
+        return ' ';
     }
 }
