@@ -52,6 +52,8 @@ class ProductShare extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     *  Get product from the current page
+     *
      * @return \Magento\Catalog\Api\Data\ProductInterface|mixed|void|null
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */

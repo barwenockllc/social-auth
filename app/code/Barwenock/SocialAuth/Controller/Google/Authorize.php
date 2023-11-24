@@ -111,7 +111,6 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\UrlInterface $url
      * @param \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
-     * @param \Magento\Framework\App\Response\Http $redirect
      */
     public function __construct(
         \Magento\Framework\Session\Generic                    $session,

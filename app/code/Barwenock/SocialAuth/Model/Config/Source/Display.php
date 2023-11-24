@@ -15,19 +15,19 @@ class Display implements \Magento\Framework\Data\OptionSourceInterface
      * Login Option
      * @var string
      */
-    const DISPLAY_ON_LOGIN = 'customer_account_login';
+    protected const DISPLAY_ON_LOGIN = 'customer_account_login';
 
     /**
      * Register Option
      * @var string
      */
-    const DISPLAY_ON_REGISTER = 'customer_account_create';
+    protected const DISPLAY_ON_REGISTER = 'customer_account_create';
 
     /**
      * Checkout Option
      * @var string
      */
-    const DISPLAY_ON_CHECKOUT = 'checkout_index_index';
+    protected const DISPLAY_ON_CHECKOUT = 'checkout_index_index';
 
     /**
      * Get options in "key-value" format

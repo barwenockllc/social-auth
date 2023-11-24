@@ -64,7 +64,6 @@ class Request implements \Magento\Framework\App\ActionInterface
         \Magento\Framework\App\Response\Http              $redirect,
         \Magento\Framework\UrlInterface                   $url
     ) {
-
         $this->session = $session;
         $this->instagramService = $instagramService;
         $this->configHelper = $configHelper;
@@ -90,7 +89,6 @@ class Request implements \Magento\Framework\App\ActionInterface
 
         $post = $this->request->getParams();
         $mainwProtocol = $this->request->getParam('mainw_protocol');
-
 
         if (!empty($post['checkoutPage'])) {
             $this->session->setCheckoutPage(1);

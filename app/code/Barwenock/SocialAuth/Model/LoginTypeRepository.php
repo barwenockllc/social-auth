@@ -77,6 +77,10 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
         return $loginType;
     }
 
+    /**
+     * @param $customerId
+     * @return LoginType
+     */
     public function getByCustomerId($customerId)
     {
         $loginType = $this->loginTypeFactory->create();

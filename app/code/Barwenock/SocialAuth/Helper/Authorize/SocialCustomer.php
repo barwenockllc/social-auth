@@ -63,8 +63,8 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * @param $customerData
      * @param $socialId
-     * @param $token
-     * @param $attributeName
+     * @param $socialToken
+     * @param $social
      * @return void
      * @throws \Exception
      */

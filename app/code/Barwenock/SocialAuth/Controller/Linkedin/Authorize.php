@@ -106,7 +106,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
      * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\UrlInterface $url
-     * @param \Barwenock\SocialAuth\Model\Customer\Create $customerCreate
+     * @param \Barwenock\SocialAuth\Model\Customer\Create $socialCustomerCreate
      * @param \Magento\Framework\Message\ManagerInterface $messageManager
      * @param \Magento\Framework\Controller\ResultFactory $resultFactory
      */

@@ -20,7 +20,9 @@ interface LoginTypeRepositoryInterface
     public function getById($id);
 
     /**
-     * @param $customerId
+     * Get by customer id
+     *
+     * @param mixed $customerId
      * @return \Barwenock\SocialAuth\Model\LoginType
      */
     public function getByCustomerId($customerId);
