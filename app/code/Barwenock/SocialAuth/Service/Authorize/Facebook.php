@@ -50,7 +50,9 @@ class Facebook
     }
 
     /**
-     * @param $url
+     * Retrieves user data from Facebook using the provided URL
+     *
+     * @param string $url
      * @return array
      * @throws \Exception
      */
@@ -62,14 +64,20 @@ class Facebook
 
             $response = $this->curl->getBody();
             return $this->json->unserialize($response);
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __($localizedException->getMessage()),
+                $localizedException->getCode(),
+                $localizedException
+            );
         }
     }
 
     /**
-     * @param $cookie
-     * @param $facebookAppSecretKey
+     * Builds the URL for retrieving user data from Facebook
+     *
+     * @param array $cookie
+     * @param string $facebookAppSecretKey
      * @return string
      */
     public function buildUserDataUrl($cookie, $facebookAppSecretKey): string
@@ -89,13 +97,14 @@ class Facebook
 
         $queryParams = '&' . http_build_query($facebookParams);
 
-
         return $token . $queryParams;
     }
 
     /**
-     * @param $appId
-     * @param $appSecret
+     * Retrieves a new Facebook cookie using the provided app ID and app secret
+     *
+     * @param string $appId
+     * @param string $appSecret
      * @return array|bool|float|int|mixed|string
      * @throws \Exception
      */
@@ -123,16 +132,22 @@ class Facebook
                     $signedRequest['expires'] = time() + $accessTokenResponse['expires_in'];
                 }
             }
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __($localizedException->getMessage()),
+                $localizedException->getCode(),
+                $localizedException
+            );
         }
 
         return $signedRequest;
     }
 
     /**
-     * @param $appId
-     * @param $appSecret
+     * Retrieves an old Facebook cookie using the provided app ID and app secret
+     *
+     * @param string $appId
+     * @param string $appSecret
      * @return array
      * @throws \Exception
      */
@@ -163,16 +178,22 @@ class Facebook
                     return $args;
                 }
             }
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __($localizedException->getMessage()),
+                $localizedException->getCode(),
+                $localizedException
+            );
         }
 
         return [];
     }
 
     /**
-     * @param $signedRequest
-     * @param $secret
+     * Parses a signed Facebook request and verifies its integrity using the provided secret
+     *
+     * @param string $signedRequest
+     * @param string $secret
      * @return array|bool|float|int|mixed|string|null
      * @throws \Exception
      */
@@ -194,22 +215,32 @@ class Facebook
             }
 
             return $data;
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __($localizedException->getMessage()),
+                $localizedException->getCode(),
+                $localizedException
+            );
         }
     }
 
     /**
-     * @param $input
+     * Decodes a base64url-encoded string
+     *
+     * @param string $input
      * @return string
-     * @throws \Exception
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function base64UrlDecode($input)
     {
         try {
             return $this->urlDecoder->decode(strtr($input, '-_', '+/'));
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __($localizedException->getMessage()),
+                $localizedException->getCode(),
+                $localizedException
+            );
         }
     }
 }

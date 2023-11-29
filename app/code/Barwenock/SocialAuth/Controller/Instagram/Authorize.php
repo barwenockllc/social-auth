@@ -12,7 +12,8 @@ namespace Barwenock\SocialAuth\Controller\Instagram;
 class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
-     * Connect social media type
+     * Connect a social media type
+     *
      * @var string
      */
     protected const CONNECT_TYPE = 'instagram';
@@ -103,6 +104,8 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     protected $resultFactory;
 
     /**
+     * Construct
+     *
      * @param \Magento\Framework\Session\Generic $session
      * @param \Magento\Store\Model\Store $store
      * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute
@@ -150,6 +153,15 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->resultFactory = $resultFactory;
     }
 
+    /**
+     * Execute the Instagram authentication process.
+     *
+     * This method sets parameters for the Instagram service, cleans the cache,
+     * and attempts to connect the user with their Instagram account.
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function execute()
     {
         $this->instagramService->setParameters();
@@ -184,6 +196,8 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
+     * Connects a customer account using Instagram authentication
+     *
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -280,8 +294,12 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         $token->access_token,
                         self::CONNECT_TYPE
                     );
-                } catch (\Exception $exception) {
-                    throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+                } catch (\Magento\Framework\Exception\LocalizedException $exception) {
+                    throw new \Magento\Framework\Exception\LocalizedException(
+                        __($exception->getMessage()),
+                        $exception->getCode(),
+                        $exception
+                    );
                 }
             }
 
@@ -306,9 +324,14 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $customersByInstagramId
-     * @param $userInfo
-     * @param $token
+     * Connect an existing customer account by Instagram ID and display appropriate messages.
+     *
+     *  If a customer is logged in, this method checks if the Instagram account is already connected
+     *  to another store account, also if not connected, it establishes the connection and sets success messages.
+     *
+     * @param \Magento\Customer\Api\Data\CustomerSearchResultsInterface $customersByInstagramId
+     * @param object $userInfo
+     * @param string $token
      * @return void
      * @throws \Exception
      */
@@ -317,7 +340,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($this->customerSession->isLoggedIn()) {
             // Logged in user
-            if ($customersByInstagramId->getTotalCount()) {
+            if ($customersByInstagramId->getTotalCount() !== 0) {
                 // Instagram account already connected to other account - deny
                 if (!$checkoutPage) {
                     $this->messageManager->addNoticeMessage(__(
@@ -356,14 +379,19 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $customersByInstagramId
+     * Check if an account is connected by Instagram ID and log in the customer if found.
+     *
+     *  This method checks the presence of a connected account by Instagram ID. If an account is found,
+     *  the customer is logged in, and success messages are set.
+     *
+     * @param \Magento\Customer\Api\Data\CustomerSearchResultsInterface $customersByInstagramId
      * @return bool
      * @throws \Exception
      */
     protected function checkAccountByInstagramId($customersByInstagramId): bool
     {
         $checkoutPage = $this->coreSession->getCheckoutPage();
-        if ($customersByInstagramId->getTotalCount()) {
+        if ($customersByInstagramId->getTotalCount() !== 0) {
             $this->isRegistor = false;
             foreach ($customersByInstagramId->getItems() as $customerInfo) {
                 $customer = $customerInfo;
@@ -388,9 +416,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $errorCode
-     * @param $code
-     * @param $state
+     * Check if the Instagram authentication request is valid
+     *
+     * @param string|null $errorCode
+     * @param string|null $code
+     * @param string|null $state
      * @return bool
      * @throws \Magento\Framework\Exception\LocalizedException
      */

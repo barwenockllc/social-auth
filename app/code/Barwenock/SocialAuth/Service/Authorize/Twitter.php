@@ -13,30 +13,35 @@ class Twitter
 {
     /**
      * Request Token URL
+     *
      * @var string
      */
     protected const REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token';
 
     /**
      * Access Token URL
+     *
      * @var string
      */
     protected const ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token';
 
     /**
      * Authenticate URL
+     *
      * @var string
      */
     protected const AUTHENTICATE_URL = 'https://api.twitter.com/oauth/authenticate';
 
     /**
      * Account Verify URL
+     *
      * @var string
      */
     protected const ACCOUNT_VERIFY_URL = 'https://api.twitter.com/1.1/account/verify_credentials.json';
 
     /**
      * Redirect Route URL
+     *
      * @var string
      */
     protected const REDIRECT_URI_ROUTE = 'socialauth/twitter/authorize';
@@ -72,6 +77,8 @@ class Twitter
     }
 
     /**
+     * Retrieves the request token from Twitter for the OAuth authorization process
+     *
      * @return array
      */
     public function getRequestToken()
@@ -96,8 +103,10 @@ class Twitter
     }
 
     /**
-     * @param $oauthToken
-     * @param $oauthVerifier
+     * Retrieves the access token and token secret from Twitter using the provided OAuth token and verifier.
+     *
+     * @param string $oauthToken
+     * @param string $oauthVerifier
      * @return array
      */
     public function getAccessToken($oauthToken, $oauthVerifier)
@@ -121,8 +130,10 @@ class Twitter
     }
 
     /**
-     * @param $oauthToken
-     * @param $oauthTokenSecret
+     * Retrieves user information from Twitter using the provided OAuth token and token secret
+     *
+     * @param string $oauthToken
+     * @param string $oauthTokenSecret
      * @return mixed
      */
     public function getUserInfo($oauthToken, $oauthTokenSecret)
@@ -141,10 +152,12 @@ class Twitter
     }
 
     /**
-     * @param $additionalParams
-     * @param $url
-     * @param $method
-     * @param $oauthTokenSecret
+     * Generates the OAuth authorization header for Twitter API requests
+     *
+     * @param array $additionalParams
+     * @param string $url
+     * @param string $method
+     * @param string|null $oauthTokenSecret
      * @return string
      */
     protected function authorization($additionalParams, $url, $method = 'GET', $oauthTokenSecret = null): string
@@ -176,15 +189,19 @@ class Twitter
     }
 
     /**
+     * Creates the request URL for initiating the Twitter authentication process
+     *
      * @return string
-     * @throws \Exception
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function createRequestUrl(): string
     {
         $token = $this->getRequestToken();
 
         if (!isset($token['oauth_token'])) {
-            throw new \Exception('Could not fetch access token for Twitter');
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Could not fetch access token for Twitter')
+            );
         }
 
         $queryParams = ['oauth_token' => $token['oauth_token']];

@@ -78,6 +78,8 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
     }
 
     /**
+     * Get the configuration settings for social authentication in the current context
+     *
      * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -119,6 +121,8 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
     }
 
     /**
+     * Check if any social authentication method is enabled
+     *
      * @return bool
      */
     public function isAnySocialEnabled(): bool
@@ -137,7 +141,9 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
     }
 
     /**
-     * @param $socialType
+     * Get the image URL for a specific social authentication type
+     *
+     * @param string $socialType
      * @return string
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -154,6 +160,8 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
     }
 
     /**
+     * Check if social authentication is enabled on the checkout page
+     *
      * @return int
      */
     public function isCheckoutPageOn()
@@ -170,7 +178,9 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
     }
 
     /**
-     * @param $data
+     * Serialize data using JSON serialization
+     *
+     * @param array $data
      * @return bool|string
      */
     public function serializeData($data)

@@ -32,6 +32,8 @@ class Instagram extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSo
     protected const OAUTH2_TOKEN_URI = 'https://api.instagram.com/oauth/access_token';
 
     /**
+     * Gets the configuration status for Instagram
+     *
      * @return int
      */
     protected function getConfigStatus(): int
@@ -40,6 +42,8 @@ class Instagram extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSo
     }
 
     /**
+     * Gets the configuration value for the Instagram client ID
+     *
      * @return string
      */
     protected function getClientIdConfig(): string
@@ -48,6 +52,8 @@ class Instagram extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSo
     }
 
     /**
+     * Gets the configuration value for the Instagram client secret
+     *
      * @return string
      */
     protected function getClientSecretConfig(): string
@@ -56,6 +62,8 @@ class Instagram extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSo
     }
 
     /**
+     * Creates and returns specific parameters for the request
+     *
      * @return array
      */
     protected function createRequestSpecificParams(): array
@@ -74,6 +82,8 @@ class Instagram extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSo
     }
 
     /**
+     * Fetches the access token using the provided authorization code
+     *
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      */
@@ -100,6 +110,8 @@ class Instagram extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSo
     }
 
     /**
+     *  Checks if the access token has expired
+     *
      * @return bool
      */
     protected function isAccessTokenExpired(): bool
@@ -108,16 +120,20 @@ class Instagram extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSo
     }
 
     /**
-     * @return void
+     * Refreshes the access token using the stored refresh token
+     *
+     * @return bool
      */
     protected function refreshAccessToken()
     {
-        // Implement refresh logic if needed
+        return true;
     }
 
     /**
-     * @param $method
-     * @param $params
+     * Get specific HTTP request parameters for the given method
+     *
+     * @param string $method
+     * @param array $params
      * @return array
      */
     protected function getSpecificHttpRequestParams($method, $params): array

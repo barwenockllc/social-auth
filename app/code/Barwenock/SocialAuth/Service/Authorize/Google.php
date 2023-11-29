@@ -50,6 +50,8 @@ class Google extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocia
     protected $prompt = 'auto';
 
     /**
+     * Gets the configuration status for Google
+     *
      * @return int
      */
     protected function getConfigStatus(): int
@@ -58,6 +60,8 @@ class Google extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocia
     }
 
     /**
+     * Gets the configuration value for the Google client ID
+     *
      * @return string
      */
     protected function getClientIdConfig(): string
@@ -66,6 +70,8 @@ class Google extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocia
     }
 
     /**
+     * Gets the configuration value for the Google client secret
+     *
      * @return string
      */
     protected function getClientSecretConfig(): string
@@ -74,6 +80,8 @@ class Google extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocia
     }
 
     /**
+     * Creates and returns specific parameters for the request
+     *
      * @return array
      */
     protected function createRequestSpecificParams(): array
@@ -95,6 +103,8 @@ class Google extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocia
     }
 
     /**
+     * Fetches the access token using the provided authorization code
+     *
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      */
@@ -122,6 +132,8 @@ class Google extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocia
     }
 
     /**
+     * Checks if the access token has expired
+     *
      * @return bool
      */
     protected function isAccessTokenExpired(): bool
@@ -130,6 +142,8 @@ class Google extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocia
     }
 
     /**
+     * Refreshes the access token using the stored refresh token
+     *
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      */
@@ -158,8 +172,10 @@ class Google extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocia
     }
 
     /**
-     * @param $method
-     * @param $params
+     * Get specific HTTP request parameters for the given method
+     *
+     * @param string $method
+     * @param array $params
      * @return string[]
      */
     protected function getSpecificHttpRequestParams($method, $params): array
@@ -170,7 +186,7 @@ class Google extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSocia
     }
 
     /**
-     * Get the scope separator for Google.
+     * Get the scope separator for Google
      *
      * @return string
      */

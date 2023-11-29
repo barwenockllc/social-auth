@@ -37,6 +37,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get module status
+     *
      * @return int
      */
     public function getModuleStatus()
@@ -48,6 +50,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get social display on configuration
+     *
      * @return mixed
      */
     public function getSocialDisplayOn()
@@ -59,6 +63,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get subscription status
+     *
      * @return mixed
      */
     public function getSubscriptionStatus()
@@ -70,6 +76,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get authorization redirect configuration
+     *
      * @return mixed
      */
     public function getAuthorizationRedirect()
@@ -81,6 +89,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get authorize redirect url
+     *
      * @return mixed
      */
     public function getAuthorizeRedirectUrl()
@@ -92,6 +102,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get Google status
+     *
      * @return int
      */
     public function getGoogleStatus(): int
@@ -103,6 +115,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get LinkedIn status
+     *
      * @return int
      */
     public function getLinkedinStatus(): int
@@ -114,6 +128,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get Instagram status
+     *
      * @return int
      */
     public function getInstagramStatus(): int
@@ -125,6 +141,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get Instagram client id
+     *
      * @return string
      */
     public function getInstagramClientId()
@@ -136,6 +154,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get an Instagram secret key
+     *
      * @return string
      */
     public function getInstagramSecretKey()
@@ -147,7 +167,9 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param $type
+     * Get social connect image
+     *
+     * @param string $type
      * @return mixed
      */
     public function getSocialConnectImage($type)
@@ -157,6 +179,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get Facebook status
+     *
      * @return int
      */
     public function getFacebookStatus(): int
@@ -168,6 +192,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get Facebook app id
+     *
      * @return string
      */
     public function getFacebookAppId()
@@ -179,6 +205,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get Facebook app secret
+     *
      * @return string
      */
     public function getFacebookAppSecret()
@@ -190,6 +218,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get Google client id
+     *
      * @return string
      */
     public function getGoogleClientId()
@@ -201,6 +231,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get Google client secret
+     *
      * @return string
      */
     public function getGoogleSecret()
@@ -212,6 +244,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get LinkedIn client id
+     *
      * @return string
      */
     public function getLinkedinClientId()
@@ -223,6 +257,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get LinkedIn client secret
+     *
      * @return string
      */
     public function getLinkedinSecret()
@@ -234,6 +270,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get Twitter status
+     *
      * @return int
      */
     public function getTwitterStatus(): int
@@ -245,6 +283,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get a Twitter consumer key
+     *
      * @return string
      */
     public function getTwitterConsumerKey()
@@ -256,6 +296,8 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get a Twitter consumer secret key
+     *
      * @return string
      */
     public function getTwitterConsumerSecretKey()

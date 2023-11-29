@@ -61,10 +61,12 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param $customerData
-     * @param $socialId
-     * @param $socialToken
-     * @param $social
+     *  Connects the customer by updating social authentication data
+     *
+     * @param object $customerData
+     * @param string $socialId
+     * @param string $socialToken
+     * @param string $social
      * @return void
      * @throws \Exception
      */
@@ -85,6 +87,8 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     *  Logs in a customer based on the provided customer data
+     *
      * @param \Magento\Customer\Model\Data\Customer $customer
      * @return void
      * @throws \Magento\Framework\Exception\InputException
@@ -102,8 +106,10 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param $socialId
-     * @param $attributeName
+     * Retrieves a list of customers based on the provided social ID and attribute name
+     *
+     * @param string $socialId
+     * @param string $attributeName
      * @return \Magento\Customer\Api\Data\CustomerSearchResultsInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -131,10 +137,11 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param $email
+     * Retrieves a customer based on the provided email address.
+     *
+     * @param string $email
      * @return \Magento\Customer\Api\Data\CustomerSearchResultsInterface
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getCustomersByEmail($email)
     {
@@ -156,8 +163,12 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
             }
 
             return $this->customerRepository->getList($this->searchCriteriaBuilder->create());
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __($localizedException->getMessage()),
+                $localizedException->getCode(),
+                $localizedException
+            );
         }
     }
 }

@@ -111,43 +111,59 @@ abstract class AbstractSocialAuth
     }
 
     /**
+     * Get config social status
+     *
      * @return mixed
      */
     abstract protected function getConfigStatus();
 
     /**
+     * Get a client id config name
+     *
      * @return string
      */
     abstract protected function getClientIdConfig(): string;
 
     /**
+     * Get client secret config name
+     *
      * @return string
      */
     abstract protected function getClientSecretConfig(): string;
 
     /**
+     * Create request specific params
+     *
      * @return array
      */
     abstract protected function createRequestSpecificParams(): array;
 
     /**
+     * Fetches the access token based on the authorization code received
+     *
      * @return mixed
      */
     abstract protected function fetchAccessTokenSpecific();
 
     /**
+     * Checks if the access token has expired
+     *
      * @return bool
      */
     abstract protected function isAccessTokenExpired(): bool;
 
     /**
+     * Refresh access token
+     *
      * @return mixed
      */
     abstract protected function refreshAccessToken();
 
     /**
-     * @param $method
-     * @param $params
+     * Retrieves specific HTTP request parameters for the given method parameters
+     *
+     * @param string $method
+     * @param array $params
      * @return array
      */
     abstract protected function getSpecificHttpRequestParams($method, $params): array;
@@ -167,7 +183,9 @@ abstract class AbstractSocialAuth
     abstract protected function getScopeSeparator(): string;
 
     /**
-     * @param $params
+     * Sets parameters for service based on the provided values
+     *
+     * @param array $params
      * @return void
      */
     public function setParameters($params = [])
@@ -187,6 +205,8 @@ abstract class AbstractSocialAuth
     }
 
     /**
+     * Creates the authorization request URL for initiating the OAuth 2.0 authentication process
+     *
      * @return string
      */
     public function createRequestUrl(): string
@@ -206,9 +226,11 @@ abstract class AbstractSocialAuth
     }
 
     /**
-     * @param $endpoint
-     * @param $method
-     * @param $params
+     * Perform an API request using OAuth 2.0 authentication
+     *
+     * @param string $endpoint
+     * @param string $method
+     * @param array $params
      * @return mixed
      * @throws \Magento\Framework\Exception\LocalizedException
      */
@@ -223,9 +245,11 @@ abstract class AbstractSocialAuth
     }
 
     /**
-     * @param $url
-     * @param $method
-     * @param $params
+     * Perform an HTTP request using cURL, handling different HTTP methods
+     *
+     * @param string $url
+     * @param string $method
+     * @param array $params
      * @return mixed
      * @throws \Magento\Framework\Exception\LocalizedException
      */
@@ -267,6 +291,8 @@ abstract class AbstractSocialAuth
     }
 
     /**
+     * Get client ID from the configuration
+     *
      * @return mixed
      */
     public function getClientId()
@@ -275,6 +301,8 @@ abstract class AbstractSocialAuth
     }
 
     /**
+     * Get client secret from the configuration
+     *
      * @return mixed
      */
     public function getClientSecret()
@@ -283,6 +311,8 @@ abstract class AbstractSocialAuth
     }
 
     /**
+     * Get redirect uri
+     *
      * @return mixed|null
      */
     public function getRedirectUri()
@@ -291,6 +321,8 @@ abstract class AbstractSocialAuth
     }
 
     /**
+     * Get scope
+     *
      * @return array|mixed
      */
     public function getScope()
@@ -299,6 +331,8 @@ abstract class AbstractSocialAuth
     }
 
     /**
+     * Get state
+     *
      * @return mixed|string
      */
     public function getState()
@@ -307,7 +341,9 @@ abstract class AbstractSocialAuth
     }
 
     /**
-     * @param $state
+     * Set state
+     *
+     * @param string $state
      * @return void
      */
     public function setState($state)
@@ -316,6 +352,8 @@ abstract class AbstractSocialAuth
     }
 
     /**
+     * Retrieve access token, refreshing it if expired
+     *
      * @return mixed
      */
     public function getAccessToken()
@@ -330,6 +368,8 @@ abstract class AbstractSocialAuth
     }
 
     /**
+     * Fetch access token
+     *
      * @return void
      */
     protected function fetchAccessToken()
@@ -338,6 +378,8 @@ abstract class AbstractSocialAuth
     }
 
     /**
+     * Get specific parameters required for API requests using access token
+     *
      * @return array
      */
     public function getSpecificAccessTokenParams()

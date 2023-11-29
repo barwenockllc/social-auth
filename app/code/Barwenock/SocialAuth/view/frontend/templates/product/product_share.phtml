@@ -10,14 +10,13 @@
  * @var $escaper \Magento\Framework\Escaper
  */
 ?>
-<?php if ($block->productShareStatus() == 1) : ?>
-<?php
+<?php if ($block->productShareStatus() == 1): ?>
+    <?php
     $product = $block->getCurrentProduct();
     $productName = urlencode($product->getName());
     $productUrl = urlencode($product->getProductUrl());
-    $style = "width = 640, height = 480, left = 0, top = 0, location = no, status = yes,
-    scrollbars = yes, resizable = yes";
-?>
+    $style = "width = 640, height = 480, left = 0, top = 0, location = no, status = yes, scrollbars = yes,
+    resizable = yes"; ?>
     <div class="social-media-icons">
         <a href="<?=
         $escaper->escapeUrl("https://www.facebook.com/sharer/sharer.php?u=" . $productUrl . "&t=" . $productName);
@@ -44,11 +43,9 @@
         <a href="<?= $escaper->escapeUrl("https://www.linkedin.com/share?url=" . $productUrl); ?>"
            onclick='javascript:window.open(this.href, "", "<?= $escaper->escapeHtml($style); ?>"); return false'
            title="Share LinkedIn">
-            <img src="<?= $escaper->escapeUrl(
-                $block->getViewFileUrl('Barwenock_SocialAuth::images/linkedin.png')
-            ); ?>"
-                 alt="LinkedIn" width="40px" height="40px">
+            <img src="<?=
+            $escaper->escapeUrl($block->getViewFileUrl('Barwenock_SocialAuth::images/linkedin.png')); ?>"
+            alt="LinkedIn" width="40px" height="40px">
         </a>
     </div>
 <?php endif; ?>
-

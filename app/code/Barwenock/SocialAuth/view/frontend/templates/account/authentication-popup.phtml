@@ -22,10 +22,10 @@
             },
             "*": {
              "Barwenock_SocialAuth/js/authentication-popup": {
-                   "serializedConfig": <?= $block->getSerializedConfig() ?>,
-                   "socialsConfiguration":<?= $block->getData('socialAuthHelper')->serializeData(
+                   "serializedConfig": <?= /* @noEscape */ $block->getSerializedConfig() ?>,
+                   "socialsConfiguration": <?= /* @noEscape */ $block->getData('socialAuthHelper')->serializeData(
                        $block->getData('socialAuthHelper')->getSocialsConfiguration()
-                    ) ?>
+                   ) ?>
                 }
             }
         }

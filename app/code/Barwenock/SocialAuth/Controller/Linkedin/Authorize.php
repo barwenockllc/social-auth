@@ -12,7 +12,8 @@ namespace Barwenock\SocialAuth\Controller\Linkedin;
 class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
-     * Connect social media type
+     * Connect a social media type
+     *
      * @var string
      */
     protected const CONNECT_TYPE = 'linkedin';
@@ -98,6 +99,8 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     protected $resultFactory;
 
     /**
+     * Constructor
+     *
      * @param \Magento\Store\Model\Store $store
      * @param \Barwenock\SocialAuth\Helper\Authorize\SocialCustomer $socialCustomerHelper
      * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute
@@ -136,6 +139,14 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->resultFactory = $resultFactory;
     }
 
+    /**
+     * Execute the LinkedIn authentication process.
+     *
+     * This method initiates the LinkedIn authentication process, handling the redirection and
+     * connectivity logic.
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
+     */
     public function execute()
     {
         try {
@@ -168,9 +179,14 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
+     * Handle the LinkedIn authentication callback and connection logic.
+     *
+     * This method processes the LinkedIn authentication callback, retrieves the access token
+     * and user information, and handles the connection logic with existing or new user accounts.
+     * It also displays success messages and handles exceptions.
+     *
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     protected function linkedinConnect()
     {
@@ -280,9 +296,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $errorCode
-     * @param $code
-     * @param $state
+     * Check if the LinkedIn authentication request is valid
+     *
+     * @param string|null $errorCode
+     * @param string|null $code
+     * @param string|null $state
      * @return bool
      */
     protected function isRequestValid($errorCode, $code, $state): bool
@@ -308,9 +326,15 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $customersByLinkedinId
-     * @param $userInfo
-     * @param $token
+     * Connect an existing store account with the LinkedIn authentication credentials
+     *
+     * This method checks if the customer is already logged in and connects their account with
+     * the provided LinkedIn authentication credentials, also it displays success messages based on
+     * the checkout page status
+     *
+     * @param \Magento\Customer\Api\Data\CustomerSearchResultsInterface $customersByLinkedinId
+     * @param object $userInfo
+     * @param string $token
      * @return void
      * @throws \Exception
      */
@@ -318,7 +342,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     {
         $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($this->customerSession->isLoggedIn()) {
-            if ($customersByLinkedinId->getTotalCount()) {
+            if ($customersByLinkedinId->getTotalCount() !== 0) {
                 if (!$checkoutPage) {
                     $this->messageManager
                         ->addNoticeMessage(
@@ -365,15 +389,16 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $customersByLinkedinId
+     * Check if there is an existing store account associated with the provided LinkedIn ID
+     *
+     * @param \Magento\Customer\Api\Data\CustomerSearchResultsInterface $customersByLinkedinId
      * @return bool
      * @throws \Exception
      */
     protected function checkAccountByLinkedinId($customersByLinkedinId): bool
     {
-        $checkoutPage = 0;
         $checkoutPage = $this->coreSession->getCheckoutPage();
-        if ($customersByLinkedinId->getTotalCount()) {
+        if ($customersByLinkedinId->getTotalCount() !== 0) {
             $this->isRegistor = false;
 
             foreach ($customersByLinkedinId->getItems() as $customerInfo) {

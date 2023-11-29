@@ -12,7 +12,8 @@ namespace Barwenock\SocialAuth\Controller\Facebook;
 class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
-     * Connect social media type
+     * Connect a social media type
+     *
      * @var string
      */
     protected const CONNECT_TYPE = 'facebook';
@@ -83,6 +84,8 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     protected $url;
 
     /**
+     * Construct
+     *
      * @param \Magento\Customer\Model\Session $customerSession
      * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
      * @param \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager
@@ -124,6 +127,12 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->url = $url;
     }
 
+    /**
+     * Execute the Facebook authentication process and handle the user data.
+     *
+     * @return void|\Magento\Framework\Controller\Result\Redirect
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function execute()
     {
         $checkoutPage = 0;
@@ -182,14 +191,20 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 return $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT)
                     ->setPath('customer/account/login');
             }
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __($localizedException->getMessage()),
+                $localizedException->getCode(),
+                $localizedException
+            );
         }
     }
 
     /**
-     * @param $appId
-     * @param $appSecret
+     * Get the Facebook cookie data based on the Facebook App ID and App Secret.
+     *
+     * @param string $appId
+     * @param string $appSecret
      * @return array|bool|float|int|mixed|string
      * @throws \Exception
      */
@@ -200,16 +215,22 @@ class Authorize implements \Magento\Framework\App\ActionInterface
             if ($cookieData != '') {
                 return $this->facebookService->getNewFacebookCookie($appId, $appSecret);
             }
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __($localizedException->getMessage()),
+                $localizedException->getCode(),
+                $localizedException
+            );
         }
 
         return $this->facebookService->getOldFacebookCookie($appId, $appSecret);
     }
 
     /**
-     * @param $facebookUser
-     * @param $checkoutPage
+     * Process the callback after a successful Facebook login and connect the user account
+     *
+     * @param array $facebookUser
+     * @param int $checkoutPage
      * @return void
      * @throws \Exception
      */
@@ -221,7 +242,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     ->getCustomersBySocialId($facebookUser['id'], self::CONNECT_TYPE);
 
                 if ($customersByFacebookId->getTotalCount() !== 0) {
-                    if (!$checkoutPage) {
+                    if ($checkoutPage === 0) {
                         $this->messageManager->addSuccessMessage(
                             __(
                                 'You have successfully logged in using your facebook account'
@@ -238,7 +259,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     $customersByEmail = $this->socialCustomerHelper->getCustomersByEmail($facebookUser['email']);
 
                     if ($customersByEmail->getTotalCount() !== 0) {
-                        if (!$checkoutPage) {
+                        if ($checkoutPage === 0) {
                             $this->messageManager->addSuccessMessage(
                                 __(
                                     'You have successfully logged in using your facebook account'
@@ -257,7 +278,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                             self::CONNECT_TYPE
                         );
 
-                        if (!$checkoutPage) {
+                        if ($checkoutPage === 0) {
                             $this->messageManager->addSuccessMessage(
                                 __(
                                     'Your %1 account is now connected to your store account.'
@@ -290,7 +311,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
                         $this->isRegistor = true;
 
-                        if (!$checkoutPage) {
+                        if ($checkoutPage === 0) {
                             $this->messageManager->addSuccessMessage(
                                 __(
                                     'Your %1 account is now connected to your new user account at our store.'
@@ -310,8 +331,12 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     }
                 }
             }
-        } catch (\Exception $exception) {
-            throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __($localizedException->getMessage()),
+                $localizedException->getCode(),
+                $localizedException
+            );
         }
     }
 }

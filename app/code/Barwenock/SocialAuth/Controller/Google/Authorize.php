@@ -12,7 +12,8 @@ namespace Barwenock\SocialAuth\Controller\Google;
 class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
-     * Connect social media type
+     * Connect a social media type
+     *
      * @var string
      */
     protected const CONNECT_TYPE = 'google';
@@ -142,6 +143,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->socialCustomerCreate = $socialCustomerCreate;
     }
 
+    /**
+     * Executes the Google authentication process, cleans cache, and redirects as needed.
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
+     */
     public function execute()
     {
         $this->googleService->setParameters();
@@ -176,7 +182,9 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @return void
+     * Executes the Google authentication process, cleans cache, and redirects as needed
+     *
+     * @return void|\Magento\Framework\Controller\Result\Redirect
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -296,9 +304,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $errorCode
-     * @param $code
-     * @param $state
+     * Check if the Google authentication request is valid
+     *
+     * @param string|null $errorCode
+     * @param string|null $code
+     * @param string|null $state
      * @return bool
      * @throws \Magento\Framework\Exception\LocalizedException
      */
@@ -331,9 +341,15 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $customersByGoogleId
-     * @param $userInfo
-     * @param $token
+     * Connect an existing store account with the Google authentication credentials
+     *
+     *  This method checks if the customer is already logged in and connects their account with
+     *  the provided Google authentication credentials, also it displays success messages based on
+     *  the checkout page status
+     *
+     * @param \Magento\Customer\Api\Data\CustomerSearchResultsInterface $customersByGoogleId
+     * @param object $userInfo
+     * @param string $token
      * @return void
      * @throws \Exception
      */
@@ -342,7 +358,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($this->customerSession->isLoggedIn()) {
             // Logged in user
-            if ($customersByGoogleId->getTotalCount()) {
+            if ($customersByGoogleId->getTotalCount() !== 0) {
                 // Google account already connected to other account - deny
                 if (!$checkoutPage) {
                     $this->messageManager->addNoticeMessage(__(
@@ -390,14 +406,19 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $customersByGoogleId
+     * Check if an account is connected by Google ID and log in the customer if found.
+     *
+     * This method checks the presence of a connected account by Google ID. If an account is found,
+     * the customer is logged in, and success messages are set.
+     *
+     * @param \Magento\Customer\Api\Data\CustomerSearchResultsInterface $customersByGoogleId
      * @return bool
      * @throws \Exception
      */
     protected function checkAccountByGoogleId($customersByGoogleId): bool
     {
         $checkoutPage = $this->coreSession->getCheckoutPage();
-        if ($customersByGoogleId->getTotalCount()) {
+        if ($customersByGoogleId->getTotalCount() !== 0) {
             $this->isRegistor = false;
 
             foreach ($customersByGoogleId->getItems() as $customerInfo) {

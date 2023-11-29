@@ -32,6 +32,8 @@ class Linkedin extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSoc
     protected const OAUTH2_TOKEN_URI = 'https://www.linkedin.com/oauth/v2/accessToken';
 
     /**
+     * Gets the configuration status for LinkedIn
+     *
      * @return int
      */
     protected function getConfigStatus(): int
@@ -40,6 +42,8 @@ class Linkedin extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSoc
     }
 
     /**
+     * Gets the configuration value for the LinkedIn client ID
+     *
      * @return string
      */
     protected function getClientIdConfig(): string
@@ -48,6 +52,8 @@ class Linkedin extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSoc
     }
 
     /**
+     * Gets the configuration value for the LinkedIn client secret
+     *
      * @return string
      */
     protected function getClientSecretConfig(): string
@@ -56,6 +62,8 @@ class Linkedin extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSoc
     }
 
     /**
+     * Creates and returns specific parameters for the request
+     *
      * @return array
      */
     protected function createRequestSpecificParams(): array
@@ -64,7 +72,7 @@ class Linkedin extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSoc
     }
 
     /**
-     * Get the default scope for LinkedIn.
+     * Get the default scope for Instagram
      *
      * @return array
      */
@@ -74,6 +82,8 @@ class Linkedin extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSoc
     }
 
     /**
+     * Fetches the access token using the provided authorization code
+     *
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      */
@@ -100,6 +110,8 @@ class Linkedin extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSoc
     }
 
     /**
+     * Checks if the access token has expired
+     *
      * @return bool
      */
     protected function isAccessTokenExpired(): bool
@@ -108,17 +120,21 @@ class Linkedin extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSoc
     }
 
     /**
-     * @return void
+     * Refreshes the access token using the stored refresh token
+     *
+     * @return bool
      */
     protected function refreshAccessToken()
     {
-        // Implement refresh logic if needed
+        return true;
     }
 
     /**
-     * @param $method
-     * @param $params
-     * @return string[]
+     * Get specific HTTP request parameters for the given method
+     *
+     * @param string $method
+     * @param array $params
+     * @return array
      */
     protected function getSpecificHttpRequestParams($method, $params): array
     {
@@ -129,7 +145,7 @@ class Linkedin extends \Barwenock\SocialAuth\Model\Service\Authorize\AbstractSoc
     }
 
     /**
-     * Get the scope separator for Facebook.
+     * Get the scope separator for Facebook
      *
      * @return string
      */

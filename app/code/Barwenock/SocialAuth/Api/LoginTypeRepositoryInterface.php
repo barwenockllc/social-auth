@@ -14,10 +14,10 @@ interface LoginTypeRepositoryInterface
     /**
      * Get by id
      *
-     * @param int $id
+     * @param int $entityId
      * @return \Barwenock\SocialAuth\Model\LoginType
      */
-    public function getById($id);
+    public function getById($entityId);
 
     /**
      * Get by customer id
@@ -30,32 +30,32 @@ interface LoginTypeRepositoryInterface
     /**
      * Save
      *
-     * @param \Barwenock\SocialAuth\Model\LoginType $subject
+     * @param \Barwenock\SocialAuth\Model\LoginType $loginType
      * @return void
      */
-    public function save(\Barwenock\SocialAuth\Model\LoginType $subject);
+    public function save(\Barwenock\SocialAuth\Model\LoginType $loginType);
 
     /**
      * Get list
      *
-     * @param \Magento\Framework\Api\SearchCriteriaInterface $creteria
+     * @param \Magento\Framework\Api\SearchCriteriaInterface $searchCriteria
      * @return \Magento\Framework\Api\SearchResults
      */
-    public function getList(\Magento\Framework\Api\SearchCriteriaInterface $creteria);
+    public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria);
 
     /**
      * Delete
      *
-     * @param \Barwenock\SocialAuth\Model\LoginType $subject
+     * @param \Barwenock\SocialAuth\Model\LoginType $loginType
      * @return boolean
      */
-    public function delete(\Barwenock\SocialAuth\Model\LoginType $subject);
+    public function delete(\Barwenock\SocialAuth\Model\LoginType $loginType);
 
     /**
      * Delete by id
      *
-     * @param int $id
+     * @param int $entityId
      * @return boolean
      */
-    public function deleteById($id);
+    public function deleteById($entityId);
 }

@@ -12,7 +12,8 @@ namespace Barwenock\SocialAuth\Controller\Twitter;
 class Authorize implements \Magento\Framework\App\ActionInterface
 {
     /**
-     * Connect social media type
+     * Connect a social media type
+     *
      * @var string
      */
     protected const CONNECT_TYPE = 'twitter';
@@ -98,6 +99,8 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     protected $resultFactory;
 
     /**
+     * Constructor
+     *
      * @param \Magento\Store\Model\Store $store
      * @param \Magento\Eav\Model\ResourceModel\Entity\Attribute $eavAttribute
      * @param \Magento\Framework\Session\SessionManagerInterface $coreSession
@@ -142,6 +145,15 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $this->resultFactory = $resultFactory;
     }
 
+    /**
+     * Execute the Twitter authentication process and clean the cache
+     *
+     * This method initiates the Twitter authentication process, cleans the cache before
+     * proceeding, and handles exceptions
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
+     * @throws \Exception
+     */
     public function execute()
     {
         $this->cacheManagement->cleanCache();
@@ -174,6 +186,12 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
+     * Connect the customer's account using Twitter authentication.
+     *
+     * This method handles the Twitter authentication process, including fetching access tokens,
+     * user information, checks for existing accounts and connects them, also if no account is found
+     * it creates a new user account
+     *
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -201,7 +219,9 @@ class Authorize implements \Magento\Framework\App\ActionInterface
 
             $token = $this->twitterService->getAccessToken($oauthToken, $oauthVerifier);
             if (!isset($token['oauth_token'])) {
-                throw new \Exception('Could not fetch customer access token for Twitter');
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    __('Could not fetch customer access token for Twitter')
+                );
             }
 
             $userInfo = $this->twitterService->getUserInfo($token['oauth_token'], $token['oauth_token_secret']);
@@ -277,8 +297,12 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         $token['oauth_token'],
                         self::CONNECT_TYPE
                     );
-                } catch (\Exception $exception) {
-                    throw new \Exception($exception->getMessage(), $exception->getCode(), $exception);
+                } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+                    throw new \Magento\Framework\Exception\LocalizedException(
+                        __($localizedException->getMessage()),
+                        $localizedException->getCode(),
+                        $localizedException
+                    );
                 }
             }
 
@@ -299,14 +323,16 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $customersByTwitterId
+     * Check if a customer account is associated with the provided Twitter ID
+     *
+     * @param \Magento\Customer\Api\Data\CustomerSearchResultsInterface $customersByTwitterId
      * @return bool
      * @throws \Exception
      */
     public function checkAccountByTwitterId($customersByTwitterId): bool
     {
         $checkoutPage = $this->coreSession->getCheckoutPage();
-        if ($customersByTwitterId->getTotalCount()) {
+        if ($customersByTwitterId->getTotalCount() !== 0) {
             $this->isRegistor = false;
             foreach ($customersByTwitterId->getItems() as $customerInfo) {
                 $customer = $customerInfo;
@@ -331,7 +357,9 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $requestToken
+     *  Check if the Twitter authentication request is valid
+     *
+     * @param string|null $requestToken
      * @return bool
      */
     protected function isRequestValid($requestToken): bool
@@ -355,9 +383,15 @@ class Authorize implements \Magento\Framework\App\ActionInterface
     }
 
     /**
-     * @param $customersByTwitterId
-     * @param $userInfo
-     * @param $token
+     * Connect an existing store account with the Twitter authentication credentials
+     *
+     * This method checks if the customer is already logged in and connects their account with
+     * the provided Twitter authentication credentials, also it displays success messages based on
+     * the checkout page status
+     *
+     * @param \Magento\Customer\Api\Data\CustomerSearchResultsInterface $customersByTwitterId
+     * @param array $userInfo
+     * @param string $token
      * @return void
      * @throws \Exception
      */
@@ -366,7 +400,7 @@ class Authorize implements \Magento\Framework\App\ActionInterface
         $checkoutPage = $this->coreSession->getCheckoutPage();
         if ($this->customerSession->isLoggedIn()) {
             // Logged in user
-            if ($customersByTwitterId->getTotalCount()) {
+            if ($customersByTwitterId->getTotalCount() !== 0) {
                 // Twitter account already connected to other account - deny
                 if (!$checkoutPage) {
                     $this->messageManager->addNoticeMessage(__(

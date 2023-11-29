@@ -68,6 +68,8 @@ class Socials extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Determines whether to display social authentication buttons based on the current action
+     *
      * @return bool
      */
     public function displaySocialsOn()
@@ -88,6 +90,8 @@ class Socials extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Checking customer login status
+     *
      * @return bool
      */
     public function ifCustomerLogin()
@@ -96,6 +100,8 @@ class Socials extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Checking if any social login enabled
+     *
      * @return bool
      */
     public function isAnySocialEnabled()
@@ -104,7 +110,9 @@ class Socials extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * @param $type
+     * Retrieves the URL of the social-connected image based on the specified social platform type
+     *
+     * @param string $type
      * @return string
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -124,6 +132,8 @@ class Socials extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Retrieve locale
+     *
      * @return string
      */
     public function getLocaleCode()
@@ -132,8 +142,10 @@ class Socials extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * @param $url
-     * @param $param
+     * Generates a URL with parameters based on the provided URL and parameters
+     *
+     * @param string $url
+     * @param array $param
      * @return string
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -143,6 +155,8 @@ class Socials extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Retrieves serialized data for populating a social authentication popup
+     *
      * @return bool|string
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -161,6 +175,8 @@ class Socials extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Retrieves serialized data for configuring the Facebook login block
+     *
      * @return bool|string
      */
     public function getFacebookBlockData()

@@ -10,16 +10,16 @@
  * @var $escaper \Magento\Framework\Escaper
  */
 ?>
-<?php if ($block->displaySocialsOn()) : ?>
+<?php if ($block->displaySocialsOn()): ?>
 <div class="socialauth_container">
-    <?php if (!$block->ifCustomerLogin() && $block->isAnySocialEnabled()) : ?>
+    <?php if (!$block->ifCustomerLogin() && $block->isAnySocialEnabled()): ?>
         <div class="socialauth_title">
             <h3>
                 <?= $escaper->escapeHtml(__("Login With Social Media")) ?>
             </h3>
         </div>
         <div class="social_block">
-            <?php if ($block->configHelper->getFacebookStatus() == 1) : ?>
+            <?php if ($block->configHelper->getFacebookStatus() == 1): ?>
                 <div  id="fblogin" class="fblogin socialauth fb_button_ps">
                     <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('facebook'))?>"
                          alt="<?= $escaper->escapeHtml(__('Facebook'))?>"
@@ -27,7 +27,7 @@
                 </div>
             <?php endif ?>
 
-            <?php if ($block->configHelper->getTwitterStatus() == 1) : ?>
+            <?php if ($block->configHelper->getTwitterStatus() == 1): ?>
                 <div  id="twitter" class="twitter socialauth">
                     <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('twitter'))?>"
                          alt="<?= $escaper->escapeHtml(__('Twitter'))?>"
@@ -35,7 +35,7 @@
                 </div>
             <?php endif; ?>
 
-            <?php if ($block->configHelper->getGoogleStatus() == 1) : ?>
+            <?php if ($block->configHelper->getGoogleStatus() == 1): ?>
                 <div id="google" class="google socialauth">
                     <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('google'))?>"
                          alt="<?= $escaper->escapeHtml(__('Google')) ?>"
@@ -43,7 +43,7 @@
                 </div>
             <?php endif; ?>
 
-            <?php if ($block->configHelper->getLinkedinStatus() == 1) : ?>
+            <?php if ($block->configHelper->getLinkedinStatus() == 1): ?>
                 <div  id="linkedin" class="linkedin socialauth">
                     <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('linkedin'))?>"
                          alt="<?= $escaper->escapeHtml(__('LinkedIn'))?>"
@@ -51,7 +51,7 @@
                 </div>
             <?php endif; ?>
 
-            <?php if ($block->configHelper->getInstagramStatus() == 1) : ?>
+            <?php if ($block->configHelper->getInstagramStatus() == 1): ?>
                 <div  id="instagram" class="instagram socialauth">
                     <img src="<?= $escaper->escapeUrl($block->getSocialConnectImage('instagram'))?>"
                          alt="<?= $escaper->escapeHtml(__('Instagram'))?>"

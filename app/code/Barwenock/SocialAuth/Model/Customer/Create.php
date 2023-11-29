@@ -82,12 +82,14 @@ class Create
     }
 
     /**
-     * @param $email
-     * @param $firstName
-     * @param $lastName
-     * @param $socialId
-     * @param $socialToken
-     * @param $social
+     * Creates a new customer account during social authentication
+     *
+     * @param string $email
+     * @param string $firstName
+     * @param string $lastName
+     * @param string $socialId
+     * @param string $socialToken
+     * @param string $social
      * @return void
      * @throws \Exception
      */
@@ -112,20 +114,19 @@ class Create
 
             if ($this->configHelper->getSubscriptionStatus()) {
                 $this->subscriptionManager->subscribeCustomer(
-                    $customerId,
-                    $this->storeManager->getStore()->getId()
+                    (int) $customerId,
+                    (int) $this->storeManager->getStore()->getId()
                 );
             }
 
             $this->customerModel->sendNewAccountEmail();
 
             $this->customerSession->loginById($customerId);
-        } catch (\Exception $exception) {
-            throw new \Exception(
-                'Exception happened during authorization: ' .
-                $exception->getMessage(),
-                $exception->getCode(),
-                $exception
+        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Exception happened during authorization: ' . $localizedException->getMessage()),
+                $localizedException->getCode(),
+                $localizedException
             );
         }
     }

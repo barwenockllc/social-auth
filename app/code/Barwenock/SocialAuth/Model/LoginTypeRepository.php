@@ -60,7 +60,7 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
     /**
      * Get entity by id
      *
-     * @param $entityId
+     * @param int $entityId
      * @return \Barwenock\SocialAuth\Api\Data\LoginTypeInterface
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
@@ -78,7 +78,9 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
     }
 
     /**
-     * @param $customerId
+     * Get by customer id
+     *
+     * @param int $customerId
      * @return LoginType
      */
     public function getByCustomerId($customerId)
@@ -90,8 +92,6 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
     }
 
     /**
-     * Save entity
-     *
      * @inheritDoc
      * @throws \Magento\Framework\Exception\CouldNotSaveException
      */
@@ -126,8 +126,6 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
     }
 
     /**
-     * Delete entity
-     *
      * @inheritDoc
      * @throws \Magento\Framework\Exception\CouldNotDeleteException
      */
@@ -143,7 +141,9 @@ class LoginTypeRepository implements \Barwenock\SocialAuth\Api\LoginTypeReposito
     }
 
     /**
-     * @param $entityId
+     * Delete by entity id
+     *
+     * @param int $entityId
      * @return bool
      * @throws \Magento\Framework\Exception\CouldNotDeleteException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
