@@ -25,6 +25,8 @@ class CheckoutLayout
     }
 
     /**
+     * After-process method to modify the JavaScript layout based on the customer's logged-in status.
+     *
      * @param \Magento\Checkout\Block\Checkout\LayoutProcessor $subject
      * @param array $jsLayout
      * @return array
@@ -48,6 +50,8 @@ class CheckoutLayout
     }
 
     /**
+     *  Set specified field values in the jsLayout for updating shipping address fields during checkout
+     *
      * @param array $jsLayout
      * @param array $values
      * @return array

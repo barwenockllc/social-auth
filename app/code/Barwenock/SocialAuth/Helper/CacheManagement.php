@@ -37,6 +37,8 @@ class CacheManagement extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Cleans cache types
+     *
      * @return void
      */
     public function cleanCache()

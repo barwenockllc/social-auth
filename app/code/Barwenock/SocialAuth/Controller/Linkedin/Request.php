@@ -47,6 +47,8 @@ class Request implements \Magento\Framework\App\ActionInterface
     protected $linkedinService;
 
     /**
+     * Constructor
+     *
      * @param \Magento\Framework\Session\Generic $session
      * @param \Magento\Framework\App\RequestInterface $request
      * @param \Magento\Framework\Controller\ResultFactory $resultFactory
@@ -73,6 +75,11 @@ class Request implements \Magento\Framework\App\ActionInterface
         $this->linkedinService = $linkedinService;
     }
 
+    /**
+     * Executes the LinkedIn request authentication process
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect|\Magento\Framework\HTTP\PhpEnvironment\Response
+     */
     public function execute()
     {
         $this->session->unsIsSocialSignupCheckoutPageReq();

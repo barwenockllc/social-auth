@@ -33,6 +33,11 @@ class Display implements \Magento\Framework\App\ActionInterface
         $this->coreSession = $coreSession;
     }
 
+    /**
+     * Retrieving success and error messages from the session for the checkout page
+     *
+     * @return \Magento\Framework\Controller\Result\Json
+     */
     public function execute()
     {
         $resultJson = $this->resultJsonFactory->create();

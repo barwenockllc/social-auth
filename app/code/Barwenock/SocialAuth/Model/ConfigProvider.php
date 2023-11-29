@@ -26,7 +26,10 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
     }
 
     /**
+     * Get config for checkout
+     *
      * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getConfig()
     {

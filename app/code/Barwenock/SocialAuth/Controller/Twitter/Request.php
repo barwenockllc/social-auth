@@ -73,6 +73,12 @@ class Request implements \Magento\Framework\App\ActionInterface
         $this->twitterService = $twitterService;
     }
 
+    /**
+     * Executes the Twitter request authentication process
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect|\Magento\Framework\HTTP\PhpEnvironment\Response
+     * @throws \Exception
+     */
     public function execute()
     {
         $this->session->unsIsSocialSignupCheckoutPageReq();

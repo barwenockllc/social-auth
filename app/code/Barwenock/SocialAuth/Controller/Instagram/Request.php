@@ -73,6 +73,11 @@ class Request implements \Magento\Framework\App\ActionInterface
         $this->url = $url;
     }
 
+    /**
+     * Executes the Instagram request authentication process
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect|\Magento\Framework\HTTP\PhpEnvironment\Response
+     */
     public function execute()
     {
         $this->session->unsIsSocialSignupCheckoutPageReq();

@@ -24,8 +24,10 @@ class Grid
     protected const LOGIN_TYPE_TABLE = 'socialauth_login_type';
 
     /**
-     * @param $interceptor
-     * @param $collection
+     * Modifies the search result collection for a login type search
+     *
+     * @param object $interceptor
+     * @param \Magento\Framework\Data\Collection $collection
      * @return mixed
      */
     public function afterSearch($interceptor, $collection)

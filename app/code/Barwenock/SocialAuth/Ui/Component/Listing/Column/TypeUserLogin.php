@@ -49,6 +49,8 @@ class TypeUserLogin extends \Magento\Ui\Component\Listing\Columns\Column
     }
 
     /**
+     * Customizes the data source for a grid or listing by retrieving customer login types
+     *
      * @param array $dataSource
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
