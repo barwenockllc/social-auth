@@ -297,11 +297,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                         $token['oauth_token'],
                         self::CONNECT_TYPE
                     );
-                } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+                } catch (\Exception $exception) {
                     throw new \Magento\Framework\Exception\LocalizedException(
-                        __($localizedException->getMessage()),
-                        $localizedException->getCode(),
-                        $localizedException
+                        __($exception->getMessage()),
+                        $exception,
+                        $exception->getCode()
                     );
                 }
             }

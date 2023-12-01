@@ -163,11 +163,11 @@ class SocialCustomer extends \Magento\Framework\App\Helper\AbstractHelper
             }
 
             return $this->customerRepository->getList($this->searchCriteriaBuilder->create());
-        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+        } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __($localizedException->getMessage()),
-                $localizedException->getCode(),
-                $localizedException
+                __($exception->getMessage()),
+                $exception,
+                $exception->getCode()
             );
         }
     }

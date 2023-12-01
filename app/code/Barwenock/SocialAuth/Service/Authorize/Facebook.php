@@ -64,11 +64,11 @@ class Facebook
 
             $response = $this->curl->getBody();
             return $this->json->unserialize($response);
-        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+        } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __($localizedException->getMessage()),
-                $localizedException->getCode(),
-                $localizedException
+                __($exception->getMessage()),
+                $exception,
+                $exception->getCode()
             );
         }
     }
@@ -132,11 +132,11 @@ class Facebook
                     $signedRequest['expires'] = time() + $accessTokenResponse['expires_in'];
                 }
             }
-        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+        } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __($localizedException->getMessage()),
-                $localizedException->getCode(),
-                $localizedException
+                __($exception->getMessage()),
+                $exception,
+                $exception->getCode()
             );
         }
 
@@ -178,11 +178,11 @@ class Facebook
                     return $args;
                 }
             }
-        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+        } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __($localizedException->getMessage()),
-                $localizedException->getCode(),
-                $localizedException
+                __($exception->getMessage()),
+                $exception,
+                $exception->getCode()
             );
         }
 
@@ -215,11 +215,11 @@ class Facebook
             }
 
             return $data;
-        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+        } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __($localizedException->getMessage()),
-                $localizedException->getCode(),
-                $localizedException
+                __($exception->getMessage()),
+                $exception,
+                $exception->getCode()
             );
         }
     }
@@ -235,11 +235,11 @@ class Facebook
     {
         try {
             return $this->urlDecoder->decode(strtr($input, '-_', '+/'));
-        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+        } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __($localizedException->getMessage()),
-                $localizedException->getCode(),
-                $localizedException
+                __($exception->getMessage()),
+                $exception,
+                $exception->getCode()
             );
         }
     }

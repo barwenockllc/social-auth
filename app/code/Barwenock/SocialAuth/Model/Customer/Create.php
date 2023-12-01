@@ -122,11 +122,11 @@ class Create
             $this->customerModel->sendNewAccountEmail();
 
             $this->customerSession->loginById($customerId);
-        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+        } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __('Exception happened during authorization: ' . $localizedException->getMessage()),
-                $localizedException->getCode(),
-                $localizedException
+                __('Exception happened during authorization: ' . $exception->getMessage()),
+                $exception,
+                $exception->getCode()
             );
         }
     }

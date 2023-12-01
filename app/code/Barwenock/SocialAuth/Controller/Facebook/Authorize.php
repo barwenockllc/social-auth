@@ -191,11 +191,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                 return $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT)
                     ->setPath('customer/account/login');
             }
-        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+        } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __($localizedException->getMessage()),
-                $localizedException->getCode(),
-                $localizedException
+                __($exception->getMessage()),
+                $exception,
+                $exception->getCode()
             );
         }
     }
@@ -215,11 +215,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
             if ($cookieData != '') {
                 return $this->facebookService->getNewFacebookCookie($appId, $appSecret);
             }
-        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+        } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __($localizedException->getMessage()),
-                $localizedException->getCode(),
-                $localizedException
+                __($exception->getMessage()),
+                $exception,
+                $exception->getCode()
             );
         }
 
@@ -331,11 +331,11 @@ class Authorize implements \Magento\Framework\App\ActionInterface
                     }
                 }
             }
-        } catch (\Magento\Framework\Exception\LocalizedException $localizedException) {
+        } catch (\Exception $exception) {
             throw new \Magento\Framework\Exception\LocalizedException(
-                __($localizedException->getMessage()),
-                $localizedException->getCode(),
-                $localizedException
+                __($exception->getMessage()),
+                $exception,
+                $exception->getCode()
             );
         }
     }
