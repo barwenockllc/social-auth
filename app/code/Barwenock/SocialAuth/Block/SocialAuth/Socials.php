@@ -142,6 +142,16 @@ class Socials extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Retrieve social top text
+     *
+     * @return string
+     */
+    public function getSocialTopText()
+    {
+        return $this->configHelper->getSocialTopText();
+    }
+
+    /**
      * Generates a URL with parameters based on the provided URL and parameters
      *
      * @param string $url

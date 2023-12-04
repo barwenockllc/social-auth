@@ -63,6 +63,19 @@ class Config extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Get social top text configuration
+     *
+     * @return string
+     */
+    public function getSocialTopText()
+    {
+        return $this->scopeConfig->getValue(
+            'socialauth/socialauth/text_top',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+    }
+
+    /**
      * Get subscription status
      *
      * @return mixed

@@ -87,6 +87,7 @@ class SocialAuth extends \Magento\Framework\App\Helper\AbstractHelper implements
     {
         return [
             'moduleStatus' => $this->adminConfig->getModuleStatus(),
+            'socialTopText' => $this->adminConfig->getSocialTopText(),
             'isCheckoutOn' => $this->isCheckoutPageOn(),
             'socialStatus' => $this->isAnySocialEnabled(),
             'facebookStatus' => $this->adminConfig->getFacebookStatus(),

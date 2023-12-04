@@ -15,7 +15,7 @@
     <?php if (!$block->ifCustomerLogin() && $block->isAnySocialEnabled()): ?>
         <div class="socialauth_title">
             <h3>
-                <?= $escaper->escapeHtml(__("Login With Social Media")) ?>
+                <?= $escaper->escapeHtml($block->getSocialTopText()) ?>
             </h3>
         </div>
         <div class="social_block">

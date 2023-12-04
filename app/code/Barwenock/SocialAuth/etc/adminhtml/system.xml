@@ -30,6 +30,13 @@
                     <label>Setup Social Login Display</label>
                     <source_model>Barwenock\SocialAuth\Model\Config\Source\Display</source_model>
                 </field>
+                <field id="text_top" translate="label comment" type="text" sortOrder="55"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Social Login Top Text</label>
+                    <comment>
+                        This text will be displayed on top of the list of social login icons.
+                    </comment>
+                </field>
                 <field id="product_share" translate="label" type="select" sortOrder="60"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Social Share on Product Page</label>

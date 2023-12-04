@@ -51,6 +51,7 @@ define([
         },
         customerSession: window.checkoutConfig.isCustomerLoggedIn,
         moduleStatus:  socialauthConfig.moduleStatus,
+        socialTopText: socialauthConfig.socialTopText,
         pageCallCheckout:  socialauthConfig.isCheckoutOn,
         status: socialauthConfig.socialStatus,
         facebookStatus: socialauthConfig.facebookStatus,
