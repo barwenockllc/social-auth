@@ -1,19 +1,18 @@
 <?php
+/**
+ * @author Barwenock
+ * @copyright Copyright (c) Barwenock
+ * @package Social Authorizes for Magento 2
+ */
+
+declare(strict_types=1);
 
 namespace Barwenock\SocialAuth\Test\Unit\Model\Customer;
-
-use Barwenock\SocialAuth\Model\Customer\Create;
-use Barwenock\SocialAuth\Model\LoginTypeFactory;
-use Barwenock\SocialAuth\Api\LoginTypeRepositoryInterface;
-use Barwenock\SocialAuth\Helper\Adminhtml\Config as ConfigHelper;
-use Magento\Customer\Model\Session;
-use Magento\Newsletter\Model\SubscriptionManager;
-use Magento\Store\Model\StoreManagerInterface;
 
 class CreateTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var Create
+     * @var \Barwenock\SocialAuth\Model\Customer\Create
      */
     protected $createModel;
 
@@ -71,22 +70,27 @@ class CreateTest extends \PHPUnit\Framework\TestCase
                 ->onlyMethods(['getId', 'sendNewAccountEmail'])
                 ->getMockForAbstractClass();
 
-        $this->loginTypeFactoryMock = $this->getMockBuilder(LoginTypeFactory::class)
+        $this->loginTypeFactoryMock = $this
+            ->getMockBuilder(\Barwenock\SocialAuth\Model\LoginTypeFactory::class)
             ->disableOriginalConstructor()
             ->addMethods(['setCustomerId', 'setLoginType'])
             ->onlyMethods(['create'])
             ->getMockForAbstractClass();
 
-        $this->customerSessionMock = $this->createMock(Session::class);
-        $this->loginTypeRepositoryMock = $this->createMock(LoginTypeRepositoryInterface::class);
-        $this->configHelperMock = $this->createMock(ConfigHelper::class);
-        $this->subscriptionManagerMock = $this->createMock(SubscriptionManager::class);
-        $this->storeManagerMock = $this->createMock(StoreManagerInterface::class);
-        $this->resourceModelMock = $this->createMock(\Magento\Customer\Model\ResourceModel\Customer::class);
+        $this->customerSessionMock = $this->createMock(\Magento\Customer\Model\Session::class);
+        $this->loginTypeRepositoryMock = $this
+            ->createMock(\Barwenock\SocialAuth\Api\LoginTypeRepositoryInterface::class);
+        $this->configHelperMock = $this
+            ->createMock(\Barwenock\SocialAuth\Helper\Adminhtml\Config::class);
+        $this->subscriptionManagerMock = $this
+            ->createMock(\Magento\Newsletter\Model\SubscriptionManager::class);
+        $this->storeManagerMock = $this->createMock(\Magento\Store\Model\StoreManagerInterface::class);
+        $this->resourceModelMock = $this
+            ->createMock(\Magento\Customer\Model\ResourceModel\Customer::class);
         $this->loginTypeMock = $this->createMock(\Barwenock\SocialAuth\Model\LoginType::class);
 
         // Create an instance of the class under test
-        $this->createModel = new Create(
+        $this->createModel = new \Barwenock\SocialAuth\Model\Customer\Create(
             $this->customerModelMock,
             $this->loginTypeFactoryMock,
             $this->customerSessionMock,
